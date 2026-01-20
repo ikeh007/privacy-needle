@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="160dp"
+    android:background="#B68300"
+    android:padding="16dp"
+    android:gravity="bottom">
+
+    <!-- App logo -->
+    <ImageView
+        android:id="@+id/drawer_logo"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/privacyneedle"
+        android:contentDescription="App Logo"
+        android:scaleType="centerCrop"
+        android:layout_gravity="left" />
+
+    <!-- App name -->
+    <TextView
+        android:id="@+id/drawer_app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Privacy Needle"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:layout_gravity="left"
+        android:paddingTop="8dp"
+        android:textStyle="bold"/>
+</LinearLayout>
