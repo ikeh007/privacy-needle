@@ -76,14 +76,18 @@
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:pointerIcon="hand"
-            app:itemIconSize="30dp"
-            app:itemRippleColor="@color/white"
+            android:layout_height="56dp"
+            android:background="#F4A800"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:minHeight="0dp"
+
+            app:labelVisibilityMode="unlabeled"
+            app:itemIconSize="24dp"
             app:itemIconTint="@color/white"
-            app:menu="@menu/bottom_nav_menu"
-            app:itemTextColor="@color/black"
-            android:background="#F4A800"/>
+            app:itemRippleColor="@color/white"
+            app:menu="@menu/bottom_nav_menu"/>
+
     </LinearLayout>
 
     <!-- Drawer Navigation -->

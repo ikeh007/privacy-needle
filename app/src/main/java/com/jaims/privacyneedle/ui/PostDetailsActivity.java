@@ -10,9 +10,9 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.content.Intent;
+import android.net.Uri;
+
 import com.jaims.privacyneedle.MainActivity;
-
-
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -25,7 +25,6 @@ public class PostDetailsActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private BottomNavigationView bottomNavigation;
     private String postUrl;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +46,6 @@ public class PostDetailsActivity extends AppCompatActivity {
         }
 
         WebSettings webSettings = postWebView.getSettings();
-
-// ✅ REQUIRED for AdSense, videos, embeds
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setLoadWithOverviewMode(true);
@@ -57,14 +54,38 @@ public class PostDetailsActivity extends AppCompatActivity {
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
 
         postWebView.setWebViewClient(new WebViewClient() {
+
+            // For API 24+ (new method)
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                view.loadUrl(request.getUrl().toString());
-                return true;
+                return handleUrl(view, request.getUrl().toString());
             }
 
+            // For older APIs
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleUrl(view, url);
+            }
+
+            // Handle Play Store links here
+            private boolean handleUrl(WebView view, String url) {
+                // If it's a Play Store link
+                if (url.startsWith("https://play.google.com/store/apps/details?id=") ||
+                        url.startsWith("market://details?id=")) {
+
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        // If Play Store is not installed, open in browser
+                        Intent intent = new Intent(Intent.ACTION_VIEW,
+                                Uri.parse(url.replace("market://", "https://play.google.com/store/apps/details?id=")));
+                        startActivity(intent);
+                    }
+                    return true; // we handled it
+                }
+
+                // Otherwise load URL normally inside WebView
                 view.loadUrl(url);
                 return true;
             }
@@ -101,9 +122,6 @@ public class PostDetailsActivity extends AppCompatActivity {
             return false;
         });
 
-
-
-        // ✅ Back button works inside WebView
         getOnBackPressedDispatcher().addCallback(this,
                 new OnBackPressedCallback(true) {
                     @Override
@@ -121,7 +139,7 @@ public class PostDetailsActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (postWebView != null) {
-            postWebView.destroy(); // prevents memory leaks
+            postWebView.destroy();
         }
     }
 }
