@@ -7,6 +7,16 @@
         android:title="Home" />
 
     <item
+        android:id="@+id/nav_backArrow"
+        android:icon="@drawable/arrow_circle_left_24px"
+        android:title="Back"/>
+
+    <item
+        android:id="@+id/nav_forwardArrow"
+        android:icon="@drawable/arrow_circle_right_24px"
+        android:title="Forward"/>
+
+    <item
         android:id="@+id/nav_share"
         android:icon="@drawable/share_24px"
         android:title="Share" />

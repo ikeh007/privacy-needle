@@ -104,7 +104,7 @@
             app:itemIconSize="24dp"
             app:itemIconTint="@color/white"
             app:itemRippleColor="@color/white"
-            app:menu="@menu/bottom_nav_menu"/>
+            app:menu="@menu/bottom_post_details"/>
     </LinearLayout>
 
     <!-- Drawer Navigation -->

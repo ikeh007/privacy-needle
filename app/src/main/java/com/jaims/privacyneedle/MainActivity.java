@@ -7,6 +7,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import android.view.Menu;
+
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -48,12 +50,12 @@ public class MainActivity extends AppCompatActivity {
     private List<Post> postList = new ArrayList<>();
 
     private final List<Integer> categoryIds = new ArrayList<>(Arrays.asList(
-            0,50,46,41,47,61,43,232,233,56
+            0,46,41,61,50,47,43,232,233,56
     ));
 
     private final List<String> categoryNames = new ArrayList<>(Arrays.asList(
-            "Latest","Definition of Terms","Data Protection","Data Breaches","Compliance",
-            "NDPC","Tech & Security","Digital Lifestyle","Startups & Innovation","Resources"
+            "Latest","Data Protection","Breach report","NDPC","Definition of Terms","Compliance",
+            "Tech & Security","Digital Lifestyle","Startups & Innovation","Resources"
     ));
 
     @Override
@@ -70,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.bottom_navigation);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        setupDrawerCategories();
+
 
 
 
@@ -118,16 +122,24 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_quiz) {
                 startActivity(new Intent(this, QuizActivity.class));
 
-             } else if (id == R.id.nav_search) {
+            } else if (id == R.id.nav_search) {
                 showSearchDialog();
+
+
+            } else if (id == R.id.nav_share) {
+                shareApp();
+
             } else if (id == R.id.nav_exclusive) {
-                Toast.makeText(this, "Exclusive clicked", Toast.LENGTH_SHORT).show();
+                tabLayout.getTabAt(9).select(); // Resources tab
+
+
             } else if (id == R.id.nav_about) {
-                Toast.makeText(this, "About Us clicked", Toast.LENGTH_SHORT).show();
+                showAboutDialog();
+
+
+        } else if (id == R.id.nav_video) {
+                showComingSoonDialog();
             }
-
-
-
 
 
             return true;
@@ -136,17 +148,31 @@ public class MainActivity extends AppCompatActivity {
 
 
         navigationView.setNavigationItemSelectedListener(item -> {
+
             int id = item.getItemId();
-            if (id == R.id.nav_categories) {
-                tabLayout.getTabAt(0).select(); // Go to Latest tab
+
+            if (id >= 0 && id < categoryNames.size()) {
+
+                tabLayout.getTabAt(id).select();
+
+            } else if (id == R.id.nav_share) {
+
+                shareApp();
+
             } else if (id == R.id.nav_settings) {
-                Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show();
+
+                Toast.makeText(this, "Settings coming soon", Toast.LENGTH_SHORT).show();
+
             } else if (id == R.id.nav_about) {
-                Toast.makeText(this, "About clicked", Toast.LENGTH_SHORT).show();
+
+                showAboutDialog();
             }
+
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
+
+
 
         // --- Back gesture handling ---
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
@@ -161,6 +187,49 @@ public class MainActivity extends AppCompatActivity {
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
     }
+
+    private void showComingSoonDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Videos")
+                .setMessage("🎬 Video contents are coming soon.\n\nStay tuned for amazing privacy & tech videos!")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void showAboutDialog() {
+
+        String aboutText =
+                "Privacy Needle\n\n" +
+                        "Privacy Needle is a digital platform dedicated to privacy awareness, " +
+                        "data protection education, cybersecurity news, compliance updates, and digital safety tips.\n\n" +
+
+                        "Our mission is to simplify privacy, data protection, and technology knowledge for everyone.\n\n" +
+
+                        "📧 Email: info@privacyneedle.com\n" +
+                        "📞 Contact: +234 905 7486 0760\n\n" +
+                        "© 2026 Privacy Needle";
+
+        new AlertDialog.Builder(this)
+                .setTitle("About Privacy Needle")
+                .setMessage(aboutText)
+                .setPositiveButton("Close", null)
+                .show();
+    }
+
+    private void shareApp() {
+
+        String appLink = "https://play.google.com/store/apps/details?id=" + getPackageName();
+
+        String shareMessage = "Download Privacy Needle – Your trusted source for privacy, data protection & cybersecurity updates.\n\n"
+                + "Get it here 👇\n" + appLink;
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
+
+        startActivity(Intent.createChooser(shareIntent, "Share Privacy Needle via"));
+    }
+
 
     // --- Search dialog ---
     private void showSearchDialog() {
@@ -202,12 +271,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    private void setupDrawerCategories() {
+        Menu menu = navigationView.getMenu();
+        Menu subMenu = menu.findItem(R.id.nav_categories).getSubMenu();
+
+        subMenu.clear();
+
+        for (int i = 0; i < categoryNames.size(); i++) {
+            subMenu.add(0, i, Menu.NONE, categoryNames.get(i))
+                    .setIcon(R.drawable.double_arrow_24px);; // optional icon
+        }
+    }
+
 
     private void fetchPosts(int categoryId) {
         progressBar.setVisibility(View.VISIBLE);
         WordPressAPI api = RetrofitClient.getClient().create(WordPressAPI.class);
         Call<List<Post>> call = categoryId == 0
-                ? api.getPosts(20, 1)
+                ? api.getPosts(15, 1)
                 : api.getPostsByCategory(categoryId, 15, 1);
 
         call.enqueue(new Callback<List<Post>>() {

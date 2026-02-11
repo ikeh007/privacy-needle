@@ -1,14 +1,29 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/nav_categories"
         android:title="Categories"
-        android:icon="@drawable/category_search_24px"/>
+        android:icon="@drawable/category_search_24px">
+
+        <menu>
+            <!-- Categories will be injected dynamically -->
+        </menu>
+
+    </item>
+
+    <item
+        android:id="@+id/nav_share"
+        android:title="Share App"
+        android:icon="@drawable/share_24px" />
+
     <item
         android:id="@+id/nav_settings"
         android:title="Settings"
-        android:icon="@drawable/settings_b_roll_24px"/>
+        android:icon="@drawable/settings_b_roll_24px" />
+
     <item
         android:id="@+id/nav_about"
         android:title="About"
-        android:icon="@drawable/info_24px"/>
+        android:icon="@drawable/info_24px" />
+
 </menu>
