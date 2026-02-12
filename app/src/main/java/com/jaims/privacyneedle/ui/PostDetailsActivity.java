@@ -103,7 +103,27 @@ public class PostDetailsActivity extends AppCompatActivity {
 
         bottomNavigation.setOnItemSelectedListener(item -> {
 
-            if (item.getItemId() == R.id.nav_home) {
+            int id = item.getItemId();
+
+            if (id == R.id.nav_backArrow) {
+                if (postWebView.canGoBack()) {
+                    postWebView.goBack();
+                } else {
+                    Toast.makeText(this, "No previous page, Click Home", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+
+            if (id == R.id.nav_forwardArrow) {
+                if (postWebView.canGoForward()) {
+                    postWebView.goForward();
+                } else {
+                    Toast.makeText(this, "No next page", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+
+            if (id == R.id.nav_home) {
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
@@ -111,7 +131,7 @@ public class PostDetailsActivity extends AppCompatActivity {
                 return true;
             }
 
-            if (item.getItemId() == R.id.nav_share) {
+            if (id == R.id.nav_share) {
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("text/plain");
                 shareIntent.putExtra(Intent.EXTRA_TEXT, postUrl);
@@ -121,6 +141,7 @@ public class PostDetailsActivity extends AppCompatActivity {
 
             return false;
         });
+
 
         getOnBackPressedDispatcher().addCallback(this,
                 new OnBackPressedCallback(true) {

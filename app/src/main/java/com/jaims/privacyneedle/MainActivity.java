@@ -205,8 +205,10 @@ public class MainActivity extends AppCompatActivity {
 
                         "Our mission is to simplify privacy, data protection, and technology knowledge for everyone.\n\n" +
 
+                        " A product of JAIMS SOLUTIONS, Developed By; Ikeh Ifeanyichukwu James.\n\n" +
+
                         "📧 Email: info@privacyneedle.com\n" +
-                        "📞 Contact: +234 905 7486 0760\n\n" +
+                        "📞 Contact: +234 905 748 6076\n\n" +
                         "© 2026 Privacy Needle";
 
         new AlertDialog.Builder(this)

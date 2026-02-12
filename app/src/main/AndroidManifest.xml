@@ -13,6 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivacyNeedle" >
+        <receiver android:name=".ui.QuizReminderReceiver" />
+
         <activity android:name=".QuizActivity" />
 
         <activity
