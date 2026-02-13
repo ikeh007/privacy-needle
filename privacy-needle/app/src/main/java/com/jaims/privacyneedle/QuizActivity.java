@@ -1,7 +1,5 @@
 package com.jaims.privacyneedle;
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
@@ -15,19 +13,6 @@ import com.jaims.privacyneedle.models.QuizQuestion;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import android.content.Intent;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.jaims.privacyneedle.ui.QuizReminderReceiver;
-
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.os.Build;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import java.util.Calendar;
-
 
 public class QuizActivity extends AppCompatActivity {
 
@@ -49,92 +34,16 @@ public class QuizActivity extends AppCompatActivity {
         opt3 = findViewById(R.id.opt3);
         opt4 = findViewById(R.id.opt4);
 
+        List<QuizQuestion> questions = getAllQuestions();
+        todayQuestion = getQuestionOfTheDay(questions);
 
-
-        createNotificationChannel();
-        scheduleDailyQuizReminder();
-
-        questions = getAllQuestions();
-        currentQuestionIndex = getToday() % questions.size();
-        todayQuestion = questions.get(currentQuestionIndex);
-
-        questionsAnsweredToday = getAnsweredCountToday();
-
-
+        showQuestion();
 
         opt1.setOnClickListener(v -> checkAnswer(0));
         opt2.setOnClickListener(v -> checkAnswer(1));
         opt3.setOnClickListener(v -> checkAnswer(2));
         opt4.setOnClickListener(v -> checkAnswer(3));
-
-        showQuestion();
-
-
-        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
-
-        bottomNavigation.setOnItemSelectedListener(item -> {
-
-            int id = item.getItemId();
-
-            if (id == R.id.nav_backArrow) {
-                finish();
-                return true;
-            }
-
-            if (id == R.id.nav_home) {
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-                finish();
-                return true;
-            }
-
-            if (id == R.id.nav_forwardArrow) {
-                Toast.makeText(this, "No next screen", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-
-            if (id == R.id.nav_share) {
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("text/plain");
-                shareIntent.putExtra(
-                        Intent.EXTRA_TEXT,
-                        "Test your Data Privacy knowledge with Privacy Needle!\n\nhttps://play.google.com/store/apps/details?id=" + getPackageName()
-                );
-                startActivity(Intent.createChooser(shareIntent, "Share via"));
-                return true;
-            }
-
-            return false;
-        });
-
-        bottomNavigation.getMenu()
-                .findItem(R.id.nav_forwardArrow)
-                .setEnabled(false);
-
     }
-
-    int questionsAnsweredToday = 0;
-    static final int MAX_QUESTIONS_PER_DAY = 3;
-
-    List<QuizQuestion> questions;
-    int currentQuestionIndex = 0;
-
-
-    private int getAnsweredCountToday() {
-        SharedPreferences prefs = getSharedPreferences("daily_quiz", MODE_PRIVATE);
-
-        int savedDay = prefs.getInt("last_attempt_day", -1);
-        int count = prefs.getInt("answered_count", 0);
-
-        if (savedDay == getToday()) {
-            return count;
-        } else {
-            return 0; // New day → reset
-        }
-    }
-
-
 
     private void showQuestion() {
         questionText.setText(todayQuestion.question);
@@ -142,16 +51,13 @@ public class QuizActivity extends AppCompatActivity {
         opt2.setText(todayQuestion.options[1]);
         opt3.setText(todayQuestion.options[2]);
         opt4.setText(todayQuestion.options[3]);
-        scoreText.setText("Question " + (questionsAnsweredToday + 1) + " of 3");
-
+        scoreText.setText("📅 Question of the Day");
     }
 
     private void checkAnswer(int selectedIndex) {
+        if (answered) return;
 
-        if (questionsAnsweredToday >= MAX_QUESTIONS_PER_DAY) {
-            Toast.makeText(this, "🎯 You’ve answered 3 questions today. Come back tomorrow!", Toast.LENGTH_LONG).show();
-            return;
-        }
+        answered = true;
 
         if (selectedIndex == todayQuestion.correctIndex) {
             Toast.makeText(this, "✅ Correct! Well done", Toast.LENGTH_SHORT).show();
@@ -159,35 +65,14 @@ public class QuizActivity extends AppCompatActivity {
             Toast.makeText(this, "❌ Wrong answer", Toast.LENGTH_SHORT).show();
         }
 
-        questionsAnsweredToday++;
         saveAttemptForToday();
-
-        if (questionsAnsweredToday < MAX_QUESTIONS_PER_DAY) {
-            loadNextQuestion();
-        } else {
-            Toast.makeText(this, "🎉 You’ve completed today’s 3 questions!", Toast.LENGTH_LONG).show();
-        }
     }
 
     private void saveAttemptForToday() {
         SharedPreferences prefs = getSharedPreferences("daily_quiz", MODE_PRIVATE);
-
         prefs.edit()
                 .putInt("last_attempt_day", getToday())
-                .putInt("answered_count", questionsAnsweredToday)
                 .apply();
-    }
-
-
-    private void loadNextQuestion() {
-        currentQuestionIndex++;
-
-        if (currentQuestionIndex >= questions.size()) {
-            currentQuestionIndex = 0;
-        }
-
-        todayQuestion = questions.get(currentQuestionIndex);
-        showQuestion();
     }
 
     private QuizQuestion getQuestionOfTheDay(List<QuizQuestion> questions) {
@@ -670,51 +555,5 @@ public class QuizActivity extends AppCompatActivity {
 
         return list;
 
-
-    }
-
-
-    private void scheduleDailyQuizReminder() {
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        Intent intent = new Intent(this, QuizReminderReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 10); // Set your desired hour (10 AM)
-        calendar.set(Calendar.MINUTE, 30);
-        calendar.set(Calendar.SECOND, 0);
-
-        // If the time is in the past, schedule for tomorrow
-        if (calendar.getTimeInMillis() < System.currentTimeMillis()) {
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
-        }
-
-        alarmManager.setRepeating(
-                AlarmManager.RTC,
-                calendar.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY,
-                pendingIntent
-        );
-    }
-
-    public void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    "daily_quiz_channel",
-                    "Daily Quiz Reminder",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            channel.setDescription("Channel for daily quiz notifications");
-            channel.setSound(null, null);
-
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
         }
     }
-}
-
