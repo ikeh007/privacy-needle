@@ -9,6 +9,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.view.Menu;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -50,18 +53,20 @@ public class MainActivity extends AppCompatActivity {
     private List<Post> postList = new ArrayList<>();
 
     private final List<Integer> categoryIds = new ArrayList<>(Arrays.asList(
-            0,46,41,61,50,47,43,232,233,56
+            0, 46, 41, 61, 50, 47, 43, 232, 233, 56
     ));
 
     private final List<String> categoryNames = new ArrayList<>(Arrays.asList(
-            "Latest","Data Protection","Breach report","NDPC","Definition of Terms","Compliance",
-            "Tech & Security","Digital Lifestyle","Startups & Innovation","Resources"
+            "Latest", "Data Protection", "Breach report", "NDPC", "Definition of Terms", "Compliance",
+            "Tech & Security", "Digital Lifestyle", "Startups & Innovation", "Resources"
     ));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        FirebaseApp.initializeApp(this);
 
         // --- Views ---
         recyclerView = findViewById(R.id.recyclerView);
@@ -73,8 +78,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setupDrawerCategories();
-
-
 
 
         // Remove title & show logo
@@ -108,10 +111,27 @@ public class MainActivity extends AppCompatActivity {
                 fetchPosts(categoryIds.get(tab.getPosition()));
             }
 
-            @Override public void onTabUnselected(@NonNull TabLayout.Tab tab) {}
-            @Override public void onTabReselected(@NonNull TabLayout.Tab tab) {}
+            @Override
+            public void onTabUnselected(@NonNull TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(@NonNull TabLayout.Tab tab) {
+            }
         });
 
+        FirebaseMessaging.getInstance().
+
+                subscribeToTopic("all")
+                        .
+
+                addOnCompleteListener(task ->
+
+                {
+                    if (task.isSuccessful()) {
+                        // Successfully subscribed
+                    }
+                });
 
 
         bottomNavigation.setOnItemSelectedListener(item -> {
@@ -137,14 +157,13 @@ public class MainActivity extends AppCompatActivity {
                 showAboutDialog();
 
 
-        } else if (id == R.id.nav_video) {
+            } else if (id == R.id.nav_video) {
                 showComingSoonDialog();
             }
 
 
             return true;
         });
-
 
 
         navigationView.setNavigationItemSelectedListener(item -> {
@@ -171,7 +190,6 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
-
 
 
         // --- Back gesture handling ---
@@ -245,7 +263,8 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("Search", (dialog, which) -> {
             String query = input.getText().toString().trim();
             if (!query.isEmpty()) searchPosts(query);
-            else Toast.makeText(MainActivity.this, "Enter a search term", Toast.LENGTH_SHORT).show();
+            else
+                Toast.makeText(MainActivity.this, "Enter a search term", Toast.LENGTH_SHORT).show();
         });
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
@@ -263,7 +282,8 @@ public class MainActivity extends AppCompatActivity {
                     postList.clear();
                     postList.addAll(response.body());
                     postsAdapter.notifyDataSetChanged();
-                } else Toast.makeText(MainActivity.this, "No results found", Toast.LENGTH_SHORT).show();
+                } else
+                    Toast.makeText(MainActivity.this, "No results found", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -273,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private void setupDrawerCategories() {
         Menu menu = navigationView.getMenu();
         Menu subMenu = menu.findItem(R.id.nav_categories).getSubMenu();
@@ -281,7 +302,8 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < categoryNames.size(); i++) {
             subMenu.add(0, i, Menu.NONE, categoryNames.get(i))
-                    .setIcon(R.drawable.double_arrow_24px);; // optional icon
+                    .setIcon(R.drawable.double_arrow_24px);
+            ; // optional icon
         }
     }
 
@@ -301,7 +323,8 @@ public class MainActivity extends AppCompatActivity {
                     postList.clear();
                     postList.addAll(response.body());
                     postsAdapter.notifyDataSetChanged();
-                } else Toast.makeText(MainActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
+                } else
+                    Toast.makeText(MainActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -311,4 +334,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 }
+
+

@@ -13,7 +13,7 @@
         android:layout_centerInParent="true"
         android:contentDescription="Privacy Needle Logo"
         android:scaleType="centerInside"
-        android:src="@drawable/privacyneedle" />
+        android:src="@drawable/pneedle_app" />
 
 
 

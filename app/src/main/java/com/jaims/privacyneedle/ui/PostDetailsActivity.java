@@ -37,7 +37,25 @@ public class PostDetailsActivity extends AppCompatActivity {
         bottomNavigation.getMenu().clear();
         bottomNavigation.inflateMenu(R.menu.bottom_post_details);
 
-        postUrl = getIntent().getStringExtra("url");
+        // ===== HANDLE DATA FROM NOTIFICATION =====
+        if (getIntent() != null) {
+
+            String postId = getIntent().getStringExtra("post_id");
+            String url = getIntent().getStringExtra("url");
+
+            // Prefer URL if available
+            if (url != null && !url.isEmpty()) {
+                postUrl = url;
+            }
+            // If URL is missing but post_id exists (future support)
+            else if (postId != null && !postId.isEmpty()) {
+                // TODO: In future, fetch post using API with postId
+                // For now, just show error
+                postUrl = null;
+            }
+        }
+
+
 
         if (postUrl == null || postUrl.isEmpty()) {
             Toast.makeText(this, "Unable to load post", Toast.LENGTH_SHORT).show();
@@ -109,10 +127,16 @@ public class PostDetailsActivity extends AppCompatActivity {
                 if (postWebView.canGoBack()) {
                     postWebView.goBack();
                 } else {
-                    Toast.makeText(this, "No previous page, Click Home", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Returning to Home", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
                 }
                 return true;
             }
+
 
             if (id == R.id.nav_forwardArrow) {
                 if (postWebView.canGoForward()) {

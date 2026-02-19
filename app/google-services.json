@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "629152035891",
+    "project_id": "privacyneedle-2f0f6",
+    "storage_bucket": "privacyneedle-2f0f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629152035891:android:ac419d3bc09370e3601f46",
+        "android_client_info": {
+          "package_name": "com.jaims.privacyneedle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4g6pwrCdQlLejtx-FOGZNed2bt0gspDk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

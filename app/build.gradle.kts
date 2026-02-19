@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -32,7 +34,8 @@ android {
 }
 
 dependencies {
-    implementation("com.github.bumptech.glide:glide:5.0.0-rc01") // Consider using the latest stable or RC version of Glide
+    implementation("com.github.bumptech.glide:glide:5.0.0-rc01")
+    implementation(libs.firebase.messaging) // Consider using the latest stable or RC version of Glide
     annotationProcessor("com.github.bumptech.glide:compiler:5.0.0-rc01") // Match Glide version
 
     implementation(libs.appcompat)
@@ -42,6 +45,9 @@ dependencies {
 
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+    implementation ("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 
     // Add Retrofit core library
     implementation("com.squareup.retrofit2:retrofit:2.9.0") // Or the latest version
