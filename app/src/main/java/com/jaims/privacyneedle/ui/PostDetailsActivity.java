@@ -10,6 +10,8 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 
 import com.jaims.privacyneedle.MainActivity;
@@ -73,21 +75,19 @@ public class PostDetailsActivity extends AppCompatActivity {
 
         postWebView.setWebViewClient(new WebViewClient() {
 
-            // For API 24+ (new method)
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return handleUrl(view, request.getUrl().toString());
             }
 
-            // For older APIs
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return handleUrl(view, url);
             }
 
-            // Handle Play Store links here
             private boolean handleUrl(WebView view, String url) {
-                // If it's a Play Store link
+
+                // Play Store handling
                 if (url.startsWith("https://play.google.com/store/apps/details?id=") ||
                         url.startsWith("market://details?id=")) {
 
@@ -95,17 +95,23 @@ public class PostDetailsActivity extends AppCompatActivity {
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                         startActivity(intent);
                     } catch (Exception e) {
-                        // If Play Store is not installed, open in browser
                         Intent intent = new Intent(Intent.ACTION_VIEW,
                                 Uri.parse(url.replace("market://", "https://play.google.com/store/apps/details?id=")));
                         startActivity(intent);
                     }
-                    return true; // we handled it
+                    return true;
                 }
 
-                // Otherwise load URL normally inside WebView
                 view.loadUrl(url);
                 return true;
+            }
+
+            // ✅ OFFLINE MODE HANDLER
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
+                if (!isOnline()) {
+                    view.loadUrl("file:///android_asset/offline.html");
+                }
             }
         });
 
@@ -117,7 +123,12 @@ public class PostDetailsActivity extends AppCompatActivity {
             }
         });
 
-        postWebView.loadUrl(postUrl);
+        // ✅ OFFLINE CHECK BEFORE LOADING
+        if (isOnline()) {
+            postWebView.loadUrl(postUrl);
+        } else {
+            postWebView.loadUrl("file:///android_asset/offline.html");
+        }
 
         bottomNavigation.setOnItemSelectedListener(item -> {
 
@@ -166,7 +177,6 @@ public class PostDetailsActivity extends AppCompatActivity {
             return false;
         });
 
-
         getOnBackPressedDispatcher().addCallback(this,
                 new OnBackPressedCallback(true) {
                     @Override
@@ -180,11 +190,25 @@ public class PostDetailsActivity extends AppCompatActivity {
                 });
     }
 
+    // ✅ INTERNET CHECK METHOD
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (postWebView != null) {
+            postWebView.loadUrl("about:blank");
+            postWebView.stopLoading();
+            postWebView.setWebViewClient(null);
+            postWebView.setWebChromeClient(null);
             postWebView.destroy();
+            postWebView = null;
         }
     }
 }
