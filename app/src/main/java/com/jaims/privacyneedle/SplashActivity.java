@@ -23,7 +23,7 @@ public class SplashActivity extends AppCompatActivity {
 
         // Delay for 3 seconds before moving to MainActivity
         new Handler().postDelayed(() -> {
-            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+            Intent intent = new Intent(SplashActivity.this, WelcomeActivity.class);
             startActivity(intent);
             finish();
         }, 3000); // 3000ms = 3 seconds

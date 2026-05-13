@@ -42,6 +42,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".WelcomeActivity" />
+
         <!-- Main activity (not launcher) -->
         <activity android:name=".MainActivity"
             android:exported="true" />
