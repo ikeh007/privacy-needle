@@ -312,8 +312,8 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         WordPressAPI api = RetrofitClient.getClient().create(WordPressAPI.class);
         Call<List<Post>> call = categoryId == 0
-                ? api.getPosts(15, 1)
-                : api.getPostsByCategory(categoryId, 15, 1);
+                ? api.getPosts(10, 1)
+                : api.getPostsByCategory(categoryId, 10, 1);
 
         call.enqueue(new Callback<List<Post>>() {
             @Override

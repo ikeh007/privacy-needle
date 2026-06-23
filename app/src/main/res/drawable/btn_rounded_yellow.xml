@@ -1,0 +1,5 @@
+<!-- res/drawable/btn_rounded_yellow.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFB800" />  <!-- Golden Yellow Color -->
+    <corners android:radius="1500dp" />  <!-- Rounded corners for button -->
+</shape>
