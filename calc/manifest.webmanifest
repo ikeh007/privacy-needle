@@ -1,0 +1,17 @@
+{
+  "name": "Privacy Needle Calc \u2014 Cloud, AI & SaaS Cost Intelligence",
+  "short_name": "PN Calc",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080d12",
+  "theme_color": "#0b1118",
+  "icons": [
+    {
+      "src": "/assets/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    }
+  ]
+}

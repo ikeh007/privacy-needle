@@ -1,0 +1,13 @@
+'use strict';
+const test=require('node:test'), assert=require('node:assert/strict');
+const catalog=require('../assets/cloud-prices.js');
+const {computeCost,normalize}=require('../assets/cloud-engine.js');
+const empty={vm:0,hours:0,dbUnits:0,dbHours:0,objectGB:0,blockGB:0,egressGB:0,crossGB:0,requestsM:0,monthlyGrowth:0,contingency:0,tax:0,regionalFactor:1};
+test('zero workload has no charges',()=>{for(const k of Object.keys(catalog.providers)){assert.equal(computeCost(empty,k).total,0)}});
+test('AWS documented hourly example computes correct raw VM meter',()=>{const r=computeCost({...empty,vm:2,hours:730},'aws');assert.ok(Math.abs(r.total-(2*730*.0418))<1e-8)});
+test('OCI 10TB outbound allowance is represented conservatively as 10000 GB',()=>{assert.equal(computeCost({...empty,egressGB:9999},'oracle').parts.egress,0);assert.ok(computeCost({...empty,egressGB:11000},'oracle').parts.egress>0)});
+test('Google outbound first GB is free',()=>{assert.equal(computeCost({...empty,egressGB:1},'gcp').parts.egress,0);assert.equal(computeCost({...empty,egressGB:2},'gcp').parts.egress,.12)});
+test('editable hourly VM rate changes cost exactly',()=>{const before=computeCost({...empty,vm:1,hours:10},'azure');const after=computeCost({...empty,vm:1,hours:10},'azure',{compute:.2});assert.ok(Math.abs(after.total-before.total-10*(.2-.0416))<1e-9)});
+test('forecast growth applies to storage while fixed VM hours remain constant',()=>{const s={...empty,vm:1,hours:730,objectGB:100,monthlyGrowth:10};const m1=computeCost(s,'aws',{},0),m2=computeCost(s,'aws',{},1);assert.equal(m1.parts.vm,m2.parts.vm);assert.ok(Math.abs(m2.parts.object/m1.parts.object-1.1)<1e-10)});
+test('tax and contingency are applied once, in order',()=>{const s={...empty,vm:1,hours:100,contingency:10,tax:10};const r=computeCost(s,'aws');assert.ok(Math.abs(r.total-(100*.0418*1.1*1.1))<1e-9)});
+test('normalization bounds invalid negatives to zero',()=>{assert.equal(normalize({vm:-3,egressGB:-200}).vm,0);assert.equal(normalize({vm:-3,egressGB:-200}).egressGB,0)});

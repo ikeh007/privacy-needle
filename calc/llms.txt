@@ -1,0 +1,28 @@
+# Privacy Needle Calc
+
+> Free cloud, AI and SaaS cost estimation and comparison tools from Privacy Needle. This website is a planning aid, not a provider price feed or invoice.
+
+Website: https://calc.privacyneedle.com/
+Publisher: https://privacyneedle.com/
+Last review: 2026-11-10
+
+## Start here
+- [Multi-cloud comparison](https://calc.privacyneedle.com/compare/): AWS vs Azure vs Google Cloud vs Oracle using editable workload and provider assumptions.
+- [AWS calculator](https://calc.privacyneedle.com/cloud/aws/)
+- [Azure calculator](https://calc.privacyneedle.com/cloud/azure/)
+- [Google Cloud calculator](https://calc.privacyneedle.com/cloud/google-cloud/)
+- [Oracle Cloud calculator](https://calc.privacyneedle.com/cloud/oracle-cloud/)
+- [AI token calculator](https://calc.privacyneedle.com/tools/ai-token-calculator/)
+- [D1 and database calculator](https://calc.privacyneedle.com/tools/cloud-database-calculator/)
+- [Cloud egress estimator](https://calc.privacyneedle.com/tools/cloud-egress-calculator/)
+- [Remote worker security cost calculator](https://calc.privacyneedle.com/tools/remote-stack-calculator/)
+- [SaaS license efficiency calculator](https://calc.privacyneedle.com/tools/saas-license-calculator/)
+
+## Research and products
+- [Methodology and official sources](https://calc.privacyneedle.com/pricing-sources/)
+- [Cloud price comparison explainer](https://calc.privacyneedle.com/guides/compare-cloud-pricing/)
+- [Cloud egress explained](https://calc.privacyneedle.com/guides/cloud-egress-fees/)
+- [Privacy Needle product ecosystem](https://calc.privacyneedle.com/ecosystem/)
+
+## Important limitations
+Cloud rate values are mixed: some verified example rate references, many illustrative and user-editable planning assumptions. No real-time price API, currency feed, guaranteed regional bill, legal compliance ruling or endorsement by a provider is implied. Performance equivalence between cloud VM reference shapes is not guaranteed. Verify vendor documentation before quoting procurement figures.
