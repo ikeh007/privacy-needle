@@ -1,0 +1,110 @@
+name: Snapshot live Privacy Needle Calc
+on:
+  push:
+    branches: [calc-live-v4]
+    paths:
+      - .github/workflows/snapshot-calc.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout snapshot branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download published Cloudflare Pages files
+        env:
+          BASE: https://calc.privacyneedle.com
+        run: |
+          set -euo pipefail
+          mkdir -p calc
+          cat > /tmp/calc-files.txt <<'FILES'
+          404.html
+          README.md
+          ads.txt
+          assets/ads-config.js
+          assets/app.js
+          assets/cloud-engine.js
+          assets/cloud-prices.js
+          assets/cloud.css
+          assets/favicon.svg
+          assets/pricing.js
+          assets/styles.css
+          cloud/aws/index.html
+          cloud/azure/index.html
+          cloud/google-cloud/index.html
+          cloud/oracle-cloud/index.html
+          compare/index.html
+          ecosystem/index.html
+          guides/cloud-egress-fees/index.html
+          guides/cloudflare-d1-free-tier-costs/index.html
+          guides/compare-cloud-pricing/index.html
+          guides/how-to-estimate-llm-api-costs/index.html
+          guides/remote-worker-security-budget/index.html
+          index.html
+          legal/methodology/index.html
+          legal/privacy/index.html
+          llms.txt
+          manifest.webmanifest
+          pricing-sources/index.html
+          robots.txt
+          sitemap.xml
+          tests/cloud-math.test.js
+          tests/site-audit.py
+          tools/ai-token-calculator/index.html
+          tools/cloud-database-calculator/index.html
+          tools/cloud-egress-calculator/index.html
+          tools/remote-stack-calculator/index.html
+          tools/saas-license-calculator/index.html
+          FILES
+          failures=0
+          while IFS= read -r path; do
+            mkdir -p "calc/$(dirname "$path")"
+            if curl --fail --silent --show-error --location --retry 4 --retry-all-errors --max-time 90 "$BASE/$path" -o "calc/$path.tmp"; then
+              if [[ -s "calc/$path.tmp" ]]; then
+                mv "calc/$path.tmp" "calc/$path"
+                echo "OK $path"
+              else
+                echo "::error::Empty response: $path"
+                failures=$((failures+1))
+              fi
+            else
+              echo "::error::Download failed: $path"
+              failures=$((failures+1))
+            fi
+          done < /tmp/calc-files.txt
+          if (( failures > 0 )); then
+            echo "::error::$failures files failed to download; no incomplete snapshot will be committed"
+            exit 1
+          fi
+          cat > calc/_headers <<'HEADERS'
+          /*
+            X-Content-Type-Options: nosniff
+            Referrer-Policy: strict-origin-when-cross-origin
+            Permissions-Policy: camera=(), microphone=(), geolocation=()
+            X-Frame-Options: SAMEORIGIN
+
+          /assets/*
+            Cache-Control: public, max-age=3600
+          HEADERS
+          test "$(find calc -name index.html | wc -l)" -eq 20
+          grep -q 'ca-pub-7008705915557363' calc/index.html
+          grep -q 'google.com, pub-7008705915557363' calc/ads.txt
+          node --check calc/assets/app.js
+          node --check calc/assets/cloud-engine.js
+          node --check calc/assets/cloud-prices.js
+          node --check calc/assets/ads-config.js
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add calc
+          if git diff --cached --quiet; then
+            echo 'The published source is unchanged.'
+          else
+            git commit -m 'Archive published Privacy Needle Calc v4 source'
+            git push origin HEAD:calc-live-v4
+          fi
