@@ -2,4 +2,8 @@
     <string name="app_name">Privacy Needle</string>
     <string name="open_drawer">Open Navigation Drawer</string>
     <string name="close_drawer">Close Navigation Drawer</string>
+    <!-- Official Privacy Needle YouTube channel ID supplied by publisher. -->
+    <string name="youtube_channel_id" translatable="false">UCo03u7ZOc9bYFUhPAJGf8TQ</string>
+    <string name="video_channel_heading">Privacy Needle Videos</string>
+    <string name="video_channel_subtitle">Privacy explainers, data protection and practical cybersecurity.</string>
 </resources>

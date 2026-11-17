@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@color/ink"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/playerBack"
+        android:layout_width="wrap_content"
+        android:layout_height="52dp"
+        android:padding="14dp"
+        android:text="‹  All videos"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:textColor="@color/gold"
+        android:textSize="15sp"/>
+
+    <WebView
+        android:id="@+id/youtubePlayer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/black"/>
+
+    <TextView
+        android:id="@+id/videoPlayerTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="8dp"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:maxLines="3"
+        android:textColor="@color/white"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="12dp"
+        android:text="Video playback is provided by YouTube. If the embed cannot play, use the button below."
+        android:textSize="12sp"
+        android:textColor="@color/light_text"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/watchOnYouTube"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginStart="18dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="18dp"
+        android:text="Watch on YouTube"
+        android:textColor="@color/ink"
+        android:textAllCaps="false"
+        app:backgroundTint="@color/gold"
+        app:cornerRadius="13dp"/>
+</LinearLayout>

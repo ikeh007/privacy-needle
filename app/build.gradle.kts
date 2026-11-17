@@ -1,3 +1,10 @@
+// AdMob production App ID comes from ~/.gradle/gradle.properties (never guess the '~' suffix).
+// The publisher prefix must match the production ad units listed in the AdMob console.
+val liveAppId = providers.gradleProperty("PRIVACY_NEEDLE_ADMOB_APP_ID")
+    .orNull?.trim().orEmpty()
+val hasLiveAppId = Regex("ca-app-pub-7008705915557363~[0-9]{10}").matches(liveAppId)
+val sampleAppId = "ca-app-pub-3940256099942544~3347511713"
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
@@ -7,6 +14,10 @@ plugins {
 android {
     namespace = "com.jaims.privacyneedle"
     compileSdk = 36
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.jaims.privacyneedle"
@@ -19,7 +30,14 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            manifestPlaceholders["ADMOB_APP_ID"] = sampleAppId
+            buildConfigField("boolean", "ADMOB_LIVE_ENABLED", "false")
+        }
         release {
+            // An unconfigured release never sends live ad requests.
+            manifestPlaceholders["ADMOB_APP_ID"] = if (hasLiveAppId) liveAppId else sampleAppId
+            buildConfigField("boolean", "ADMOB_LIVE_ENABLED", hasLiveAppId.toString())
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -34,6 +52,9 @@ android {
 }
 
 dependencies {
+    // Google Mobile Ads SDK (legacy APIs) and User Messaging Platform privacy consent.
+    implementation("com.google.android.gms:play-services-ads:25.5.0")
+    implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
