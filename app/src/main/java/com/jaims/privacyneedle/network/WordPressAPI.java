@@ -22,8 +22,12 @@ public interface WordPressAPI {
             @Query("per_page") int perPage,
             @Query("page") int page
     );
-    @GET("posts")
-    Call<List<Post>> getPostsBySearch(@Query("search") String keyword);
+    @GET("posts?_embed")
+    Call<List<Post>> getPostsBySearch(
+            @Query("search") String keyword,
+            @Query("per_page") int perPage,
+            @Query("page") int page
+    );
 
 
 }

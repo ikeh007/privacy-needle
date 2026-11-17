@@ -40,14 +40,15 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.PostViewHold
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = postList.get(position);
 
-        // Render title and excerpt
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            holder.title.setText(Html.fromHtml(post.getTitle().rendered, Html.FROM_HTML_MODE_LEGACY));
-            holder.excerpt.setText(Html.fromHtml(post.getExcerpt().rendered, Html.FROM_HTML_MODE_LEGACY));
-        } else {
-            holder.title.setText(Html.fromHtml(post.getTitle().rendered));
-            holder.excerpt.setText(Html.fromHtml(post.getExcerpt().rendered));
-        }
+        // WordPress plugins can return missing or null rendered fields.
+        String title = post.getTitle() != null && post.getTitle().rendered != null
+                ? post.getTitle().rendered : "Untitled";
+        String excerpt = post.getExcerpt() != null && post.getExcerpt().rendered != null
+                ? post.getExcerpt().rendered : "";
+        holder.title.setText(androidx.core.text.HtmlCompat.fromHtml(
+                title, androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY));
+        holder.excerpt.setText(androidx.core.text.HtmlCompat.fromHtml(
+                excerpt, androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY));
 
         // Format date
         String rawDate = post.getDate();

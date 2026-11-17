@@ -1,6 +1,9 @@
 package com.jaims.privacyneedle;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -20,6 +23,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,7 +55,14 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private BottomNavigationView bottomNavigation;
 
-    private List<Post> postList = new ArrayList<>();
+    private static final int PAGE_SIZE = 10;
+    private final List<Post> postList = new ArrayList<>();
+    private Call<List<Post>> activeCall;
+    private int currentCategoryId = 0;
+    private int nextPage = 1;
+    private int totalPages = Integer.MAX_VALUE;
+    private String currentSearchQuery;
+    private boolean isLoading = false;
 
     private final List<Integer> categoryIds = new ArrayList<>(Arrays.asList(
             0, 46, 41, 61, 50, 47, 43, 232, 233, 56
@@ -67,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         FirebaseApp.initializeApp(this);
+        requestNotificationPermission();
 
         // --- Views ---
         recyclerView = findViewById(R.id.recyclerView);
@@ -86,7 +99,18 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayUseLogoEnabled(true);
         }
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView view, int dx, int dy) {
+                super.onScrolled(view, dx, dy);
+                if (dy > 0 && !isLoading && nextPage <= totalPages
+                        && layoutManager.findLastVisibleItemPosition() >= postList.size() - 3) {
+                    loadNextPage();
+                }
+            }
+        });
         postsAdapter = new PostsAdapter(this, postList);
         recyclerView.setAdapter(postsAdapter);
 
@@ -102,13 +126,13 @@ public class MainActivity extends AppCompatActivity {
             tabLayout.addTab(tabLayout.newTab().setText(name));
         }
 
-        fetchPosts(0);
+        selectCategory(0);
 
         // --- Tab selection ---
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(@NonNull TabLayout.Tab tab) {
-                fetchPosts(categoryIds.get(tab.getPosition()));
+                selectCategory(categoryIds.get(tab.getPosition()));
             }
 
             @Override
@@ -206,6 +230,15 @@ public class MainActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+        }
+    }
+
     private void showComingSoonDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Videos")
@@ -272,26 +305,106 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void searchPosts(String keyword) {
+        currentSearchQuery = keyword;
+        currentCategoryId = 0;
+        resetFeed();
+    }
+
+    private void selectCategory(int categoryId) {
+        currentCategoryId = categoryId;
+        currentSearchQuery = null;
+        resetFeed();
+    }
+
+    private void resetFeed() {
+        if (activeCall != null) {
+            activeCall.cancel();
+            activeCall = null;
+        }
+        isLoading = false;
+        nextPage = 1;
+        totalPages = Integer.MAX_VALUE;
+        postList.clear();
+        postsAdapter.notifyDataSetChanged();
+        loadNextPage();
+    }
+
+    private void loadNextPage() {
+        if (isLoading || nextPage > totalPages || isFinishing() || isDestroyed()) {
+            return;
+        }
+
+        WordPressAPI api = RetrofitClient.getAPI();
+        final int requestedPage = nextPage;
+        Call<List<Post>> call;
+        if (currentSearchQuery != null) {
+            call = api.getPostsBySearch(currentSearchQuery, PAGE_SIZE, requestedPage);
+        } else if (currentCategoryId == 0) {
+            call = api.getPosts(PAGE_SIZE, requestedPage);
+        } else {
+            call = api.getPostsByCategory(currentCategoryId, PAGE_SIZE, requestedPage);
+        }
+
+        activeCall = call;
+        isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
-        WordPressAPI api = RetrofitClient.getClient().create(WordPressAPI.class);
-        api.getPostsBySearch(keyword).enqueue(new Callback<List<Post>>() {
+
+        call.enqueue(new Callback<List<Post>>() {
             @Override
-            public void onResponse(@NonNull Call<List<Post>> call, @NonNull Response<List<Post>> response) {
+            public void onResponse(@NonNull Call<List<Post>> request,
+                                   @NonNull Response<List<Post>> response) {
+                if (request != activeCall) return; // Ignore older tab/search responses.
+                activeCall = null;
+                isLoading = false;
                 progressBar.setVisibility(View.GONE);
-                if (response.isSuccessful() && response.body() != null) {
-                    postList.clear();
-                    postList.addAll(response.body());
-                    postsAdapter.notifyDataSetChanged();
-                } else
-                    Toast.makeText(MainActivity.this, "No results found", Toast.LENGTH_SHORT).show();
+
+                if (!response.isSuccessful() || response.body() == null) {
+                    Toast.makeText(MainActivity.this, "Unable to load articles", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String pageHeader = response.headers().get("X-WP-TotalPages");
+                if (pageHeader != null) {
+                    try {
+                        totalPages = Integer.parseInt(pageHeader);
+                    } catch (NumberFormatException ignored) {
+                        // Fallback to detecting the final short page below.
+                    }
+                }
+
+                List<Post> incoming = response.body();
+                int start = postList.size();
+                postList.addAll(incoming);
+                if (!incoming.isEmpty()) {
+                    postsAdapter.notifyItemRangeInserted(start, incoming.size());
+                } else if (requestedPage == 1) {
+                    Toast.makeText(MainActivity.this, "No articles found", Toast.LENGTH_SHORT).show();
+                }
+
+                nextPage = requestedPage + 1;
+                if (incoming.size() < PAGE_SIZE) {
+                    totalPages = Math.min(totalPages, requestedPage);
+                }
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<Post>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<Post>> request, @NonNull Throwable error) {
+                if (request != activeCall) return;
+                activeCall = null;
+                isLoading = false;
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "Search failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (!request.isCanceled()) {
+                    Toast.makeText(MainActivity.this,
+                            "Connection problem. Please try again.", Toast.LENGTH_LONG).show();
+                }
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeCall != null) activeCall.cancel();
+        super.onDestroy();
     }
 
     private void setupDrawerCategories() {
@@ -307,33 +420,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    private void fetchPosts(int categoryId) {
-        progressBar.setVisibility(View.VISIBLE);
-        WordPressAPI api = RetrofitClient.getClient().create(WordPressAPI.class);
-        Call<List<Post>> call = categoryId == 0
-                ? api.getPosts(10, 1)
-                : api.getPostsByCategory(categoryId, 10, 1);
-
-        call.enqueue(new Callback<List<Post>>() {
-            @Override
-            public void onResponse(@NonNull Call<List<Post>> call, @NonNull Response<List<Post>> response) {
-                progressBar.setVisibility(View.GONE);
-                if (response.isSuccessful() && response.body() != null) {
-                    postList.clear();
-                    postList.addAll(response.body());
-                    postsAdapter.notifyDataSetChanged();
-                } else
-                    Toast.makeText(MainActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<List<Post>> call, @NonNull Throwable t) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
 
 }
 

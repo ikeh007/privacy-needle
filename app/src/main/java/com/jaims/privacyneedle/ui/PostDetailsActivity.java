@@ -1,5 +1,9 @@
 package com.jaims.privacyneedle.ui;
 
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -9,23 +13,19 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
 
-import com.jaims.privacyneedle.MainActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.jaims.privacyneedle.MainActivity;
 import com.jaims.privacyneedle.R;
 
 public class PostDetailsActivity extends AppCompatActivity {
+    private static final String OFFLINE_PAGE = "file:///android_asset/offline.html";
 
     private WebView postWebView;
     private ProgressBar progressBar;
-    private BottomNavigationView bottomNavigation;
     private String postUrl;
 
     @Override
@@ -35,129 +35,81 @@ public class PostDetailsActivity extends AppCompatActivity {
 
         postWebView = findViewById(R.id.postWebView);
         progressBar = findViewById(R.id.progressBar);
-        bottomNavigation = findViewById(R.id.bottom_navigation);
-        bottomNavigation.getMenu().clear();
-        bottomNavigation.inflateMenu(R.menu.bottom_post_details);
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
 
-        // ===== HANDLE DATA FROM NOTIFICATION =====
-        if (getIntent() != null) {
-
-            String postId = getIntent().getStringExtra("post_id");
-            String url = getIntent().getStringExtra("url");
-
-            // Prefer URL if available
-            if (url != null && !url.isEmpty()) {
-                postUrl = url;
-            }
-            // If URL is missing but post_id exists (future support)
-            else if (postId != null && !postId.isEmpty()) {
-                // TODO: In future, fetch post using API with postId
-                // For now, just show error
-                postUrl = null;
-            }
-        }
-
-
-
-        if (postUrl == null || postUrl.isEmpty()) {
-            Toast.makeText(this, "Unable to load post", Toast.LENGTH_SHORT).show();
+        String requestedUrl = getIntent().getStringExtra("url");
+        if (!isTrustedArticleUrl(requestedUrl)) {
+            Toast.makeText(this, "Unable to open this article", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
+        postUrl = requestedUrl;
 
-        WebSettings webSettings = postWebView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setLoadWithOverviewMode(true);
-        webSettings.setUseWideViewPort(true);
-        webSettings.setMediaPlaybackRequiresUserGesture(false);
-        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+        WebSettings settings = postWebView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setJavaScriptCanOpenWindowsAutomatically(false);
 
         postWebView.setWebViewClient(new WebViewClient() {
-
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                return handleUrl(view, request.getUrl().toString());
+                if (!request.isForMainFrame()) return false;
+                return handleNavigation(request.getUrl());
             }
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return handleUrl(view, url);
+                return handleNavigation(Uri.parse(url));
             }
 
-            private boolean handleUrl(WebView view, String url) {
-
-                // Play Store handling
-                if (url.startsWith("https://play.google.com/store/apps/details?id=") ||
-                        url.startsWith("market://details?id=")) {
-
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW,
-                                Uri.parse(url.replace("market://", "https://play.google.com/store/apps/details?id=")));
-                        startActivity(intent);
-                    }
-                    return true;
+            private boolean handleNavigation(Uri uri) {
+                if (isTrustedArticleUrl(uri.toString())) {
+                    return false; // Let WebView load internal website links itself.
                 }
-
-                view.loadUrl(url);
+                try {
+                    Intent external = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(external);
+                } catch (Exception ignored) {
+                    Toast.makeText(PostDetailsActivity.this,
+                            "No app can open this link", Toast.LENGTH_SHORT).show();
+                }
                 return true;
             }
 
-            // ✅ OFFLINE MODE HANDLER
             @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
-                if (!isOnline()) {
-                    view.loadUrl("file:///android_asset/offline.html");
+            public void onReceivedError(WebView view, WebResourceRequest request,
+                                        android.webkit.WebResourceError error) {
+                if (request.isForMainFrame() && !isOnline()) {
+                    view.loadUrl(OFFLINE_PAGE);
                 }
             }
         });
 
         postWebView.setWebChromeClient(new WebChromeClient() {
             @Override
-            public void onProgressChanged(WebView view, int newProgress) {
-                progressBar.setProgress(newProgress);
-                progressBar.setVisibility(newProgress < 100 ? View.VISIBLE : View.GONE);
+            public void onProgressChanged(WebView view, int progress) {
+                progressBar.setProgress(progress);
+                progressBar.setVisibility(progress < 100 ? View.VISIBLE : View.GONE);
             }
         });
 
-        // ✅ OFFLINE CHECK BEFORE LOADING
-        if (isOnline()) {
-            postWebView.loadUrl(postUrl);
-        } else {
-            postWebView.loadUrl("file:///android_asset/offline.html");
-        }
+        postWebView.loadUrl(isOnline() ? postUrl : OFFLINE_PAGE);
 
         bottomNavigation.setOnItemSelectedListener(item -> {
-
             int id = item.getItemId();
-
             if (id == R.id.nav_backArrow) {
-                if (postWebView.canGoBack()) {
-                    postWebView.goBack();
-                } else {
-                    Toast.makeText(this, "Returning to Home", Toast.LENGTH_SHORT).show();
-
-                    Intent intent = new Intent(this, MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
-                }
+                if (postWebView.canGoBack()) postWebView.goBack();
+                else finish();
                 return true;
             }
-
-
             if (id == R.id.nav_forwardArrow) {
-                if (postWebView.canGoForward()) {
-                    postWebView.goForward();
-                } else {
-                    Toast.makeText(this, "No next page", Toast.LENGTH_SHORT).show();
-                }
+                if (postWebView.canGoForward()) postWebView.goForward();
+                else Toast.makeText(this, "No next page", Toast.LENGTH_SHORT).show();
                 return true;
             }
-
             if (id == R.id.nav_home) {
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -165,50 +117,53 @@ public class PostDetailsActivity extends AppCompatActivity {
                 finish();
                 return true;
             }
-
             if (id == R.id.nav_share) {
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("text/plain");
-                shareIntent.putExtra(Intent.EXTRA_TEXT, postUrl);
-                startActivity(Intent.createChooser(shareIntent, "Share via"));
+                Intent share = new Intent(Intent.ACTION_SEND);
+                share.setType("text/plain");
+                share.putExtra(Intent.EXTRA_TEXT, postUrl);
+                startActivity(Intent.createChooser(share, "Share via"));
                 return true;
             }
-
             return false;
         });
 
-        getOnBackPressedDispatcher().addCallback(this,
-                new OnBackPressedCallback(true) {
-                    @Override
-                    public void handleOnBackPressed() {
-                        if (postWebView.canGoBack()) {
-                            postWebView.goBack();
-                        } else {
-                            finish();
-                        }
-                    }
-                });
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (postWebView.canGoBack()) postWebView.goBack();
+                else finish();
+            }
+        });
     }
 
-    // ✅ INTERNET CHECK METHOD
+    private static boolean isTrustedArticleUrl(String url) {
+        if (url == null || url.trim().isEmpty()) return false;
+        Uri uri = Uri.parse(url);
+        String host = uri.getHost();
+        return "https".equalsIgnoreCase(uri.getScheme()) && host != null
+                && (host.equalsIgnoreCase("privacyneedle.com")
+                || host.equalsIgnoreCase("www.privacyneedle.com"));
+    }
+
     private boolean isOnline() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-
-        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
+        if (cm == null || cm.getActiveNetwork() == null) return false;
+        NetworkCapabilities capabilities = cm.getNetworkCapabilities(cm.getActiveNetwork());
+        return capabilities != null
+                && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         if (postWebView != null) {
-            postWebView.loadUrl("about:blank");
             postWebView.stopLoading();
+            postWebView.loadUrl("about:blank");
             postWebView.setWebViewClient(null);
             postWebView.setWebChromeClient(null);
             postWebView.destroy();
             postWebView = null;
         }
+        super.onDestroy();
     }
 }

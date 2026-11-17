@@ -1,8 +1,6 @@
 package com.jaims.privacyneedle;
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
-import android.content.SharedPreferences;
+ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
@@ -25,8 +23,6 @@ import android.os.Build;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
-import java.util.Calendar;
 
 
 public class QuizActivity extends AppCompatActivity {
@@ -137,13 +133,24 @@ public class QuizActivity extends AppCompatActivity {
 
 
     private void showQuestion() {
+        boolean finished = questionsAnsweredToday >= MAX_QUESTIONS_PER_DAY;
+        opt1.setEnabled(!finished);
+        opt2.setEnabled(!finished);
+        opt3.setEnabled(!finished);
+        opt4.setEnabled(!finished);
+
+        if (finished) {
+            scoreText.setText("3 of 3 questions completed today");
+            questionText.setText("You've completed today's quiz. Come back tomorrow!");
+            return;
+        }
+
         questionText.setText(todayQuestion.question);
         opt1.setText(todayQuestion.options[0]);
         opt2.setText(todayQuestion.options[1]);
         opt3.setText(todayQuestion.options[2]);
         opt4.setText(todayQuestion.options[3]);
         scoreText.setText("Question " + (questionsAnsweredToday + 1) + " of 3");
-
     }
 
     private void checkAnswer(int selectedIndex) {
@@ -166,6 +173,7 @@ public class QuizActivity extends AppCompatActivity {
             loadNextQuestion();
         } else {
             Toast.makeText(this, "🎉 You’ve completed today’s 3 questions!", Toast.LENGTH_LONG).show();
+            showQuestion();
         }
     }
 
@@ -197,7 +205,8 @@ public class QuizActivity extends AppCompatActivity {
 
     private int getToday() {
         Calendar calendar = Calendar.getInstance();
-        return calendar.get(Calendar.DAY_OF_YEAR);
+        // Include year so last year's attempts cannot block today's quiz.
+        return calendar.get(Calendar.YEAR) * 1000 + calendar.get(Calendar.DAY_OF_YEAR);
     }
 
     private List<QuizQuestion> getAllQuestions() {

@@ -51,8 +51,8 @@ public class CategoryFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        recyclerView = view.findViewById(R.id.recyclerView);
-        progressBar = view.findViewById(R.id.progress);
+        recyclerView = view.findViewById(R.id.recyclerCategory);
+        progressBar = view.findViewById(R.id.progressCategory);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         if (getArguments() != null) {
@@ -78,6 +78,7 @@ public class CategoryFragment extends Fragment {
         call.enqueue(new Callback<List<Post>>() {
             @Override
             public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
+                if (!isAdded() || getView() == null) return;
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     recyclerView.setAdapter(new PostsAdapter(getContext(), response.body()));
@@ -88,6 +89,7 @@ public class CategoryFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<Post>> call, Throwable t) {
+                if (!isAdded() || getView() == null || call.isCanceled()) return;
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }

@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 
     <application
@@ -16,7 +18,9 @@
         android:theme="@style/Theme.PrivacyNeedle">
 
         <!-- Quiz reminder receiver -->
-        <receiver android:name=".ui.QuizReminderReceiver" />
+        <receiver
+            android:name=".ui.QuizReminderReceiver"
+            android:exported="false" />
 
         <!-- Quiz activity -->
         <activity android:name=".QuizActivity" />
@@ -24,13 +28,7 @@
         <!-- Post details activity for notification clicks -->
         <activity
             android:name=".ui.PostDetailsActivity"
-            android:launchMode="singleTop"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="OPEN_POST" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
 
         <!-- Splash activity (launcher) -->
         <activity
@@ -46,7 +44,7 @@
 
         <!-- Main activity (not launcher) -->
         <activity android:name=".MainActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- Firebase messaging service -->
         <service
