@@ -13,4 +13,10 @@ public final class DailyQuizPolicy {
     public static boolean canOfferBonus(int alreadyAnsweredToday, boolean bonusUnlocked) {
         return alreadyAnsweredToday == FREE_DAILY_QUESTIONS && !bonusUnlocked;
     }
+
+    public static int todayKey() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        return c.get(java.util.Calendar.YEAR) * 1000
+                + c.get(java.util.Calendar.DAY_OF_YEAR);
+    }
 }

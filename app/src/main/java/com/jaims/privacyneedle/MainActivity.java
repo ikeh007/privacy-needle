@@ -36,6 +36,7 @@ import com.jaims.privacyneedle.adapters.PostsAdapter;
 import com.jaims.privacyneedle.ads.AdMobManager;
 import com.jaims.privacyneedle.ads.AdPlacementPolicy;
 import com.jaims.privacyneedle.videos.VideosActivity;
+import com.jaims.privacyneedle.products.ProductsActivity;
 import android.net.Uri;
 import com.jaims.privacyneedle.models.Post;
 import com.jaims.privacyneedle.network.RetrofitClient;
@@ -96,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
         bottomNavigation = findViewById(R.id.bottom_navigation);
+        findViewById(R.id.openProductsButton)
+                .setOnClickListener(v -> startActivity(new Intent(this, ProductsActivity.class)));
 
         // A non-functional Videos button can be treated as deceptive navigation.
         // Enable it only after the verified official YouTube channel ID is configured.
@@ -195,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                 shareApp();
 
             } else if (id == R.id.nav_exclusive) {
-                tabLayout.getTabAt(9).select(); // Resources tab
+                startActivity(new Intent(this, ProductsActivity.class));
 
 
             } else if (id == R.id.nav_about) {
@@ -222,6 +225,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_share) {
 
                 shareApp();
+
+            } else if (id == R.id.nav_products) {
+                startActivity(new Intent(this, ProductsActivity.class));
 
             } else if (id == R.id.nav_privacy_policy) {
                 startActivity(new Intent(Intent.ACTION_VIEW,

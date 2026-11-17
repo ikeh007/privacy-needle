@@ -22,4 +22,14 @@ public final class AdPlacementPolicy {
     public static boolean mayShowVideoBanner(int videoCount) {
         return videoCount >= 6;
     }
+
+    public static boolean mayShowVideoNative(int videoCount) {
+        // Videos catalogue only; never use mobile ads in the YouTube player.
+        return videoCount >= 6;
+    }
+
+    public static int desiredVideoNativeAds(int videoCount) {
+        if (!mayShowVideoNative(videoCount)) return 0;
+        return Math.min(6, videoCount / 3);
+    }
 }

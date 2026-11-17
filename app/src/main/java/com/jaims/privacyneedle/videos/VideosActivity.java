@@ -1,6 +1,13 @@
 package com.jaims.privacyneedle.videos;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.widget.Button;
+import androidx.appcompat.app.AlertDialog;
+import com.jaims.privacyneedle.QuizActivity;
+import com.jaims.privacyneedle.products.ProductsActivity;
+import com.jaims.privacyneedle.ads.DailyQuizPolicy;
+import com.jaims.privacyneedle.ads.RewardedQuizAdManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -33,6 +40,9 @@ public class VideosActivity extends AppCompatActivity {
     private TextView message;
     private VideosAdapter adapter;
     private AdMobManager adsManager;
+    private RewardedQuizAdManager rewardedManager;
+    private Button bonusButton;
+    private boolean bonusLoadStarted;
     private final List<VideoItem> items = new ArrayList<>();
     private String channelId;
 
@@ -50,8 +60,16 @@ public class VideosActivity extends AppCompatActivity {
         list.setLayoutManager(new LinearLayoutManager(this));
         adapter = new VideosAdapter(this, items);
         list.setAdapter(adapter);
+
+        bonusButton = findViewById(R.id.videoBonusAd);
+        bonusButton.setVisibility(View.GONE);
+        bonusButton.setOnClickListener(v -> confirmBonusReward());
+        findViewById(R.id.openPrivacyProducts)
+                .setOnClickListener(v -> startActivity(new Intent(this, ProductsActivity.class)));
+
         adsManager = new AdMobManager(this);
-        adsManager.requestConsentAndInitialize(this::maybeLoadGalleryAd);
+        rewardedManager = new RewardedQuizAdManager(this);
+        adsManager.requestConsentAndInitialize(this::maybeLoadGalleryAds);
 
         findViewById(R.id.videoBack).setOnClickListener(v -> finish());
         findViewById(R.id.videosRetry).setOnClickListener(v -> refresh());
@@ -69,18 +87,90 @@ public class VideosActivity extends AppCompatActivity {
         }
     }
 
-    private void maybeLoadGalleryAd() {
-        if (adsManager == null || !AdPlacementPolicy.mayShowVideoBanner(items.size())) return;
-        adsManager.loadFeedBanner(() -> {
-            if (!isFinishing() && !isDestroyed()) {
-                adapter.setBanner(adsManager.getLoadedBanner());
-            }
+    private void maybeLoadGalleryAds() {
+        if (adsManager == null || isFinishing() || isDestroyed()) return;
+        if (AdPlacementPolicy.mayShowVideoBanner(items.size())) {
+            adsManager.loadFeedBanner(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    adapter.setBanner(adsManager.getLoadedBanner());
+                }
+            });
+        }
+        if (AdPlacementPolicy.mayShowVideoNative(items.size())) {
+            adsManager.loadVideoNativeAds(items.size(), () -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    adapter.setNativeAds(adsManager.getLoadedNativeAds());
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        maybePrepareBonusAd();
+    }
+
+    private boolean canEarnVideoQuizBonus() {
+        SharedPreferences prefs = getSharedPreferences("daily_quiz", MODE_PRIVATE);
+        // The fourth quiz question can be unlocked in Videos, even before the
+        // first three are answered. Playback and the daily three stay free.
+        return prefs.getInt("bonus_unlock_day", -1) != DailyQuizPolicy.todayKey();
+    }
+
+    private void maybePrepareBonusAd() {
+        if (rewardedManager == null || bonusButton == null) return;
+        if (items.isEmpty() || !canEarnVideoQuizBonus()) {
+            bonusButton.setVisibility(View.GONE);
+            return;
+        }
+        if (rewardedManager.isReady()) {
+            bonusButton.setVisibility(View.VISIBLE);
+            return;
+        }
+        if (bonusLoadStarted) return;
+        bonusLoadStarted = true;
+        rewardedManager.prepare(ready -> {
+            if (isFinishing() || isDestroyed()) return;
+            bonusButton.setVisibility(ready && canEarnVideoQuizBonus()
+                    ? View.VISIBLE : View.GONE);
         });
+    }
+
+    private void confirmBonusReward() {
+        if (!canEarnVideoQuizBonus() || !rewardedManager.isReady()) {
+            bonusButton.setVisibility(View.GONE);
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Unlock one bonus quiz question")
+                .setMessage("Watch one optional AdMob rewarded ad to unlock a fourth "
+                        + "privacy quiz question today. All videos and the first "
+                        + "three quiz questions remain free without watching an ad.")
+                .setNegativeButton("Not now", null)
+                .setPositiveButton("Watch optional ad", (d, which) -> {
+                    bonusButton.setVisibility(View.GONE);
+                    rewardedManager.showReward(() -> {
+                        if (isFinishing() || isDestroyed() || !canEarnVideoQuizBonus()) return;
+                        getSharedPreferences("daily_quiz", MODE_PRIVATE).edit()
+                                .putInt("bonus_unlock_day", DailyQuizPolicy.todayKey()).apply();
+                        new AlertDialog.Builder(this)
+                                .setTitle("Bonus question unlocked")
+                                .setMessage("Your fourth daily privacy quiz question is available.")
+                                .setPositiveButton("Open quiz", (dialog, w) ->
+                                        startActivity(new Intent(this, QuizActivity.class)))
+                                .setNegativeButton("Keep watching", null)
+                                .show();
+                    }, () -> {
+                        if (!isFinishing() && !isDestroyed()) maybePrepareBonusAd();
+                    });
+                }).show();
     }
 
     @Override
     protected void onDestroy() {
         if (adsManager != null) adsManager.destroy();
+        if (rewardedManager != null) rewardedManager.destroy();
         super.onDestroy();
     }
 
@@ -145,8 +235,9 @@ public class VideosActivity extends AppCompatActivity {
                 progress.setVisibility(View.GONE);
                 items.clear();
                 items.addAll(loaded);
-                adapter.notifyDataSetChanged();
-                maybeLoadGalleryAd();
+                adapter.refreshRows();
+                maybeLoadGalleryAds();
+                maybePrepareBonusAd();
                 if (items.isEmpty()) {
                     empty.setVisibility(View.VISIBLE);
                     message.setText(finalError != null ? finalError : "This channel has no public videos yet.");
