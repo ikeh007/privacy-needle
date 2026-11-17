@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Existing Privacy Needle brand colours, preserved -->
+    <color name="gold">#FFB300</color>
+    <color name="gold_action">#F4A800</color>
+    <color name="gold_deep">#B68300</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Editorial neutrals to support the existing gold, black and white identity -->
+    <color name="ink">#171717</color>
+    <color name="text_secondary">#646464</color>
+    <color name="canvas">#F8F8F6</color>
+    <color name="stroke">#E7E4DC</color>
+    <color name="warm_gold">#FFF6E0</color>
+    <color name="light_text">#E7E3DB</color>
 </resources>

@@ -13,11 +13,19 @@ public class WelcomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getSharedPreferences("privacy_needle", MODE_PRIVATE)
+                .getBoolean("onboarding_complete", false)) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_welcome);
 
         btnGetStarted = findViewById(R.id.btnGetStarted);
 
         btnGetStarted.setOnClickListener(v -> {
+            getSharedPreferences("privacy_needle", MODE_PRIVATE)
+                    .edit().putBoolean("onboarding_complete", true).apply();
             Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
             startActivity(intent);
             finish();

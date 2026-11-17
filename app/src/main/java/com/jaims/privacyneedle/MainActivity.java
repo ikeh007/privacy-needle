@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
+    private View emptyState;
     private PostsAdapter postsAdapter;
     private TabLayout tabLayout;
     private DrawerLayout drawerLayout;
@@ -84,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
         // --- Views ---
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progress);
+        emptyState = findViewById(R.id.emptyState);
+        findViewById(R.id.retryButton).setOnClickListener(v -> loadNextPage());
         tabLayout = findViewById(R.id.tabLayout);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
@@ -326,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
         totalPages = Integer.MAX_VALUE;
         postList.clear();
         postsAdapter.notifyDataSetChanged();
+        emptyState.setVisibility(View.GONE);
         loadNextPage();
     }
 
@@ -347,6 +351,7 @@ public class MainActivity extends AppCompatActivity {
 
         activeCall = call;
         isLoading = true;
+        emptyState.setVisibility(View.GONE);
         progressBar.setVisibility(View.VISIBLE);
 
         call.enqueue(new Callback<List<Post>>() {
@@ -359,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
 
                 if (!response.isSuccessful() || response.body() == null) {
+                    emptyState.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
                     Toast.makeText(MainActivity.this, "Unable to load articles", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -378,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!incoming.isEmpty()) {
                     postsAdapter.notifyItemRangeInserted(start, incoming.size());
                 } else if (requestedPage == 1) {
-                    Toast.makeText(MainActivity.this, "No articles found", Toast.LENGTH_SHORT).show();
+                    emptyState.setVisibility(View.VISIBLE);
                 }
 
                 nextPage = requestedPage + 1;
@@ -394,6 +400,7 @@ public class MainActivity extends AppCompatActivity {
                 isLoading = false;
                 progressBar.setVisibility(View.GONE);
                 if (!request.isCanceled()) {
+                    emptyState.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
                     Toast.makeText(MainActivity.this,
                             "Connection problem. Please try again.", Toast.LENGTH_LONG).show();
                 }

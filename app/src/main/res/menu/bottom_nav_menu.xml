@@ -1,29 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_home"
+    <item android:id="@+id/nav_home"
         android:icon="@drawable/home_24px"
-        android:title="Home"/>
-
-
-    <item
-        android:id="@+id/nav_exclusive"
+        android:title="Home"
+        android:checked="true"/>
+    <item android:id="@+id/nav_exclusive"
         android:icon="@drawable/diamond_24px"
-        android:title="Exclusive"/>
-
-    <item
-        android:id="@+id/nav_video"
+        android:title="Resources"/>
+    <item android:id="@+id/nav_video"
         android:icon="@drawable/play_circle_24px"
-        android:title="Video"/>
-
-
-    <item
-        android:id="@+id/nav_quiz"
+        android:title="Videos"/>
+    <item android:id="@+id/nav_quiz"
         android:icon="@drawable/clarify_24px"
-        android:title="Daily Quiz" />
-    <item
-        android:id="@+id/nav_search"
-        android:icon="@android:drawable/ic_menu_search"
-        android:title="Search" />
-
-
+        android:title="Quiz"/>
+    <item android:id="@+id/nav_search"
+        android:icon="@drawable/category_search_24px"
+        android:title="Search"/>
 </menu>
