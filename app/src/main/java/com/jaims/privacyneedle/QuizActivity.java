@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import com.jaims.privacyneedle.ads.RewardedQuizAdManager;
 import com.jaims.privacyneedle.ads.DailyQuizPolicy;
+import com.jaims.privacyneedle.ads.InterstitialQuizAdManager;
 
 import com.jaims.privacyneedle.models.QuizQuestion;
 
@@ -32,7 +33,8 @@ import android.content.Context;
 public class QuizActivity extends AppCompatActivity {
 
     TextView questionText, scoreText;
-    Button opt1, opt2, opt3, opt4, bonusButton;
+    Button opt1, opt2, opt3, opt4, bonusButton, summaryButton;
+    private InterstitialQuizAdManager interstitialAds;
     private RewardedQuizAdManager rewardedAds;
     private boolean bonusUnlockedToday;
     private boolean bonusAdLoadingStarted;
@@ -55,6 +57,11 @@ public class QuizActivity extends AppCompatActivity {
         bonusButton.setVisibility(View.GONE);
         bonusButton.setOnClickListener(v -> confirmOptionalRewardedAd());
         rewardedAds = new RewardedQuizAdManager(this);
+        interstitialAds = new InterstitialQuizAdManager(this);
+        interstitialAds.prepare();
+        summaryButton = findViewById(R.id.btnQuizSummary);
+        summaryButton.setVisibility(View.GONE);
+        summaryButton.setOnClickListener(v -> showCompletionSummary());
 
 
 
@@ -152,6 +159,7 @@ public class QuizActivity extends AppCompatActivity {
         opt3.setEnabled(!finished);
         opt4.setEnabled(!finished);
         bonusButton.setVisibility(View.GONE);
+        summaryButton.setVisibility(finished ? View.VISIBLE : View.GONE);
 
         if (finished) {
             scoreText.setText(questionsAnsweredToday + " of " + dailyLimit + " completed today");
@@ -208,6 +216,27 @@ public class QuizActivity extends AppCompatActivity {
                         showQuestion();
                     });
                 }).show();
+    }
+
+    private void showCompletionSummary() {
+        summaryButton.setEnabled(false);
+        // Only the deliberate transition from a completed challenge to its summary
+        // is eligible. Ordinary Home, Back, Search and article navigation never trigger ads.
+        interstitialAds.showAtNaturalBreak(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            summaryButton.setEnabled(true);
+            new AlertDialog.Builder(this)
+                    .setTitle("Today's privacy quiz")
+                    .setMessage("You completed " + questionsAnsweredToday + " question"
+                            + (questionsAnsweredToday == 1 ? "" : "s")
+                            + " today. Keep learning and come back tomorrow!")
+                    .setPositiveButton("Continue learning", (d, w) -> {
+                        startActivity(new Intent(this, MainActivity.class));
+                        finish();
+                    })
+                    .setNegativeButton("Stay here", null)
+                    .show();
+        });
     }
 
     private void checkAnswer(int selectedIndex) {
@@ -740,6 +769,7 @@ public class QuizActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (rewardedAds != null) rewardedAds.destroy();
+        if (interstitialAds != null) interstitialAds.destroy();
         super.onDestroy();
     }
 

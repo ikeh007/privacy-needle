@@ -4,8 +4,14 @@ val verifiedAppId = "ca-app-pub-7008705915557363~9635177396"
 val liveAppId = providers.gradleProperty("PRIVACY_NEEDLE_ADMOB_APP_ID")
     .orNull?.trim()?.takeIf { it.isNotEmpty() } ?: verifiedAppId
 val hasLiveAppId = Regex("ca-app-pub-7008705915557363~[0-9]{10}").matches(liveAppId)
-val enableReleaseRewarded = providers.gradleProperty("PRIVACY_NEEDLE_ENABLE_REWARDED_ADS")
-    .orNull?.equals("true", ignoreCase = true) == true
+// Production ad formats are on when the verified App ID is configured.
+// Gradle opt-out flags allow disabling an individual format without code edits.
+val enableReleaseRewarded = providers.gradleProperty("PRIVACY_NEEDLE_DISABLE_REWARDED_ADS")
+    .orNull?.equals("true", ignoreCase = true) != true
+val enableReleaseInterstitial = providers.gradleProperty("PRIVACY_NEEDLE_DISABLE_INTERSTITIAL_ADS")
+    .orNull?.equals("true", ignoreCase = true) != true
+val enableReleaseNative = providers.gradleProperty("PRIVACY_NEEDLE_DISABLE_NATIVE_ADS")
+    .orNull?.equals("true", ignoreCase = true) != true
 val sampleAppId = "ca-app-pub-3940256099942544~3347511713"
 
 plugins {
@@ -37,14 +43,19 @@ android {
             manifestPlaceholders["ADMOB_APP_ID"] = sampleAppId
             buildConfigField("boolean", "ADMOB_LIVE_ENABLED", "false")
             buildConfigField("boolean", "ADMOB_REWARDED_ENABLED", "true")
+            buildConfigField("boolean", "ADMOB_INTERSTITIAL_ENABLED", "true")
+            buildConfigField("boolean", "ADMOB_NATIVE_ENABLED", "true")
         }
         release {
             // An unconfigured release never sends live ad requests.
             manifestPlaceholders["ADMOB_APP_ID"] = if (hasLiveAppId) liveAppId else sampleAppId
             buildConfigField("boolean", "ADMOB_LIVE_ENABLED", hasLiveAppId.toString())
-            // During policy remediation, the optional quiz reward stays off in production.
             buildConfigField("boolean", "ADMOB_REWARDED_ENABLED",
                 (hasLiveAppId && enableReleaseRewarded).toString())
+            buildConfigField("boolean", "ADMOB_INTERSTITIAL_ENABLED",
+                (hasLiveAppId && enableReleaseInterstitial).toString())
+            buildConfigField("boolean", "ADMOB_NATIVE_ENABLED",
+                (hasLiveAppId && enableReleaseNative).toString())
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

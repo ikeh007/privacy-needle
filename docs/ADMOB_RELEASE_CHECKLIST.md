@@ -60,3 +60,10 @@ Use the **personalized snippet** from AdMob if it differs. The Android GitHub re
 - Monitor matched requests, impressions, fill rate, eCPM, CTR, country mix and retention in AdMob reports.
 - Once approved, separately audit **native ads within long editorial feeds** and infrequent **interstitials at explicit natural breaks**. Never place forced rewarded ads, ads on empty screens, ads disguised as navigation, or app banners atop YouTube playback.
 - No ad frequency, code change or optimization can guarantee revenue or an account approval.
+
+
+## New full-format deployment review
+
+The updated Android code implements all four formats. Test ad rendering with debug IDs on a device before making a new release. Native ads repeat after 3 published posts (maximum 8 per feed session), and the Videos list has a banner after five thumbnails; the YouTube player itself remains ad-free. One interstitial can display at the deliberate quiz-complete → summary transition, subject to a 20-minute cooldown; rewarded video remains opt-in for one bonus question.
+
+The production App ID was captured as `ca-app-pub-7008705915557363~9635177396` (not the ad-unit IDs using `/`). The Ads SDK and real production IDs are configured for release, but developer confirmation of the AdMob account and Play Console release is still required. **Do not interpret code-level activation as Google approval or guaranteed fill.** Complete the account's policy review and store disclosures.
