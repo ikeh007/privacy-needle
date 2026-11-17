@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.ads.AdView;
 import com.jaims.privacyneedle.R;
+import com.jaims.privacyneedle.ads.AdPlacementPolicy;
 import com.jaims.privacyneedle.models.Post;
 import com.jaims.privacyneedle.ui.PostDetailsActivity;
 
@@ -25,7 +26,6 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private static final int ARTICLE = 0;
     private static final int ADVERTISEMENT = 1;
     private static final int AD_POSITION = 5; // After five actual publisher articles.
-    private static final int MINIMUM_ARTICLES_FOR_AD = 7;
 
     private final Context context;
     private final List<Post> postList;
@@ -48,7 +48,8 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     private boolean hasAdRow() {
-        return advertisingEnabled && banner != null && postList.size() >= MINIMUM_ARTICLES_FOR_AD;
+        return advertisingEnabled && banner != null
+                && AdPlacementPolicy.mayShowFeedBanner(postList.size(), false);
     }
 
     @Override

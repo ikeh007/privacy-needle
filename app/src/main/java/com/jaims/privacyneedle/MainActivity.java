@@ -34,6 +34,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.jaims.privacyneedle.adapters.PostsAdapter;
 import com.jaims.privacyneedle.ads.AdMobManager;
+import com.jaims.privacyneedle.ads.AdPlacementPolicy;
 import com.jaims.privacyneedle.videos.VideosActivity;
 import android.net.Uri;
 import com.jaims.privacyneedle.models.Post;
@@ -272,7 +273,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void maybeLoadFeedAd() {
-        if (adsManager == null || postList.size() < 7 || currentSearchQuery != null) return;
+        if (adsManager == null ||
+                !AdPlacementPolicy.mayShowFeedBanner(postList.size(), currentSearchQuery != null)) return;
         adsManager.loadFeedBanner(() -> {
             if (!isFinishing() && !isDestroyed()) {
                 postsAdapter.setBanner(adsManager.getLoadedBanner());
