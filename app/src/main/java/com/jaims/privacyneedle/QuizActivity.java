@@ -7,6 +7,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+import android.view.View;
+import com.jaims.privacyneedle.ads.RewardedQuizAdManager;
+import com.jaims.privacyneedle.ads.DailyQuizPolicy;
 
 import com.jaims.privacyneedle.models.QuizQuestion;
 
@@ -28,7 +32,10 @@ import android.content.Context;
 public class QuizActivity extends AppCompatActivity {
 
     TextView questionText, scoreText;
-    Button opt1, opt2, opt3, opt4;
+    Button opt1, opt2, opt3, opt4, bonusButton;
+    private RewardedQuizAdManager rewardedAds;
+    private boolean bonusUnlockedToday;
+    private boolean bonusAdLoadingStarted;
 
     QuizQuestion todayQuestion;
     boolean answered = false;
@@ -44,6 +51,10 @@ public class QuizActivity extends AppCompatActivity {
         opt2 = findViewById(R.id.opt2);
         opt3 = findViewById(R.id.opt3);
         opt4 = findViewById(R.id.opt4);
+        bonusButton = findViewById(R.id.btnBonusQuestion);
+        bonusButton.setVisibility(View.GONE);
+        bonusButton.setOnClickListener(v -> confirmOptionalRewardedAd());
+        rewardedAds = new RewardedQuizAdManager(this);
 
 
 
@@ -51,10 +62,11 @@ public class QuizActivity extends AppCompatActivity {
         scheduleDailyQuizReminder();
 
         questions = getAllQuestions();
-        currentQuestionIndex = getToday() % questions.size();
-        todayQuestion = questions.get(currentQuestionIndex);
-
         questionsAnsweredToday = getAnsweredCountToday();
+        bonusUnlockedToday = getSharedPreferences("daily_quiz", MODE_PRIVATE)
+                .getInt("bonus_unlock_day", -1) == getToday();
+        currentQuestionIndex = (getToday() + questionsAnsweredToday) % questions.size();
+        todayQuestion = questions.get(currentQuestionIndex);
 
 
 
@@ -133,15 +145,25 @@ public class QuizActivity extends AppCompatActivity {
 
 
     private void showQuestion() {
-        boolean finished = questionsAnsweredToday >= MAX_QUESTIONS_PER_DAY;
+        final int dailyLimit = DailyQuizPolicy.allowedQuestions(bonusUnlockedToday);
+        boolean finished = questionsAnsweredToday >= dailyLimit;
         opt1.setEnabled(!finished);
         opt2.setEnabled(!finished);
         opt3.setEnabled(!finished);
         opt4.setEnabled(!finished);
+        bonusButton.setVisibility(View.GONE);
 
         if (finished) {
-            scoreText.setText("3 of 3 questions completed today");
-            questionText.setText("You've completed today's quiz. Come back tomorrow!");
+            scoreText.setText(questionsAnsweredToday + " of " + dailyLimit + " completed today");
+            questionText.setText(bonusUnlockedToday
+                    ? "You've completed your bonus question. Come back tomorrow!"
+                    : "You've completed today's three free questions. Come back tomorrow!");
+            if (!bonusUnlockedToday && !bonusAdLoadingStarted) {
+                prepareOptionalBonusAd();
+            } else if (!bonusUnlockedToday && rewardedAds.isReady()) {
+                bonusButton.setVisibility(View.VISIBLE);
+                bonusButton.setEnabled(true);
+            }
             return;
         }
 
@@ -150,15 +172,47 @@ public class QuizActivity extends AppCompatActivity {
         opt2.setText(todayQuestion.options[1]);
         opt3.setText(todayQuestion.options[2]);
         opt4.setText(todayQuestion.options[3]);
-        scoreText.setText("Question " + (questionsAnsweredToday + 1) + " of 3");
+        scoreText.setText("Question " + (questionsAnsweredToday + 1) + " of " + dailyLimit);
+    }
+
+    private void prepareOptionalBonusAd() {
+        if (bonusAdLoadingStarted || !DailyQuizPolicy.canOfferBonus(
+                questionsAnsweredToday, bonusUnlockedToday)) return;
+        bonusAdLoadingStarted = true;
+        rewardedAds.prepare(ready -> {
+            if (isFinishing() || isDestroyed()) return;
+            bonusButton.setVisibility(ready ? View.VISIBLE : View.GONE);
+            bonusButton.setEnabled(ready);
+        });
+    }
+
+    private void confirmOptionalRewardedAd() {
+        if (!DailyQuizPolicy.canOfferBonus(questionsAnsweredToday, bonusUnlockedToday)
+                || !rewardedAds.isReady()) return;
+        new AlertDialog.Builder(this)
+                .setTitle("One optional bonus question")
+                .setMessage("Watch one optional advertisement to unlock one extra privacy quiz question today. "
+                        + "The normal three questions are free, and you can skip this ad.")
+                .setNegativeButton("Not now", null)
+                .setPositiveButton("Watch ad", (dialog, which) -> {
+                    bonusButton.setVisibility(View.GONE);
+                    rewardedAds.showReward(() -> {
+                        if (isFinishing() || isDestroyed() || bonusUnlockedToday) return;
+                        bonusUnlockedToday = true;
+                        getSharedPreferences("daily_quiz", MODE_PRIVATE).edit()
+                                .putInt("bonus_unlock_day", getToday()).apply();
+                        loadNextQuestion();
+                    }, () -> {
+                        if (isFinishing() || isDestroyed()) return;
+                        // An abandoned or failed ad never grants the bonus.
+                        showQuestion();
+                    });
+                }).show();
     }
 
     private void checkAnswer(int selectedIndex) {
-
-        if (questionsAnsweredToday >= MAX_QUESTIONS_PER_DAY) {
-            Toast.makeText(this, "🎯 You’ve answered 3 questions today. Come back tomorrow!", Toast.LENGTH_LONG).show();
-            return;
-        }
+        final int dailyLimit = DailyQuizPolicy.allowedQuestions(bonusUnlockedToday);
+        if (questionsAnsweredToday >= dailyLimit) return;
 
         if (selectedIndex == todayQuestion.correctIndex) {
             Toast.makeText(this, "✅ Correct! Well done", Toast.LENGTH_SHORT).show();
@@ -169,10 +223,10 @@ public class QuizActivity extends AppCompatActivity {
         questionsAnsweredToday++;
         saveAttemptForToday();
 
-        if (questionsAnsweredToday < MAX_QUESTIONS_PER_DAY) {
+        if (questionsAnsweredToday < dailyLimit) {
             loadNextQuestion();
         } else {
-            Toast.makeText(this, "🎉 You’ve completed today’s 3 questions!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "🎉 Today's quiz complete!", Toast.LENGTH_LONG).show();
             showQuestion();
         }
     }
@@ -682,6 +736,12 @@ public class QuizActivity extends AppCompatActivity {
 
     }
 
+
+    @Override
+    protected void onDestroy() {
+        if (rewardedAds != null) rewardedAds.destroy();
+        super.onDestroy();
+    }
 
     private void scheduleDailyQuizReminder() {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);

@@ -121,6 +121,10 @@ public final class AdMobManager {
         adView.loadAd(new AdRequest.Builder().build());
     }
 
+    public boolean canLoadAds() {
+        return sdkReady && !closed && consentInfo.canRequestAds();
+    }
+
     public AdView getLoadedBanner() {
         return banner;
     }

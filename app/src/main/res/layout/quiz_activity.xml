@@ -173,6 +173,19 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBonusQuestion"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="14dp"
+                android:text="Watch an ad · Unlock 1 bonus question"
+                android:textAllCaps="false"
+                android:textColor="@color/ink"
+                android:contentDescription="Watch an optional rewarded advertisement to unlock one bonus quiz question"
+                android:visibility="gone"
+                app:backgroundTint="@color/gold"
+                app:cornerRadius="14dp"/>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
