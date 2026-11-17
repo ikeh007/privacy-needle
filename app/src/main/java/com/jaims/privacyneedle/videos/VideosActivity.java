@@ -84,7 +84,9 @@ public class VideosActivity extends AppCompatActivity {
                 connection.setReadTimeout(10000);
                 connection.setRequestProperty("User-Agent", "PrivacyNeedleAndroid/1.0");
                 if (connection.getResponseCode() != 200) throw new Exception("Feed unavailable");
-                XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                factory.setNamespaceAware(true);
+                XmlPullParser parser = factory.newPullParser();
                 parser.setInput(connection.getInputStream(), "UTF-8");
 
                 boolean entry = false;
