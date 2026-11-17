@@ -12,6 +12,7 @@ import android.view.View;
 import com.jaims.privacyneedle.ads.RewardedQuizAdManager;
 import com.jaims.privacyneedle.ads.DailyQuizPolicy;
 import com.jaims.privacyneedle.ads.InterstitialQuizAdManager;
+import com.jaims.privacyneedle.game.QuizScoreCard;
 
 import com.jaims.privacyneedle.models.QuizQuestion;
 
@@ -33,7 +34,11 @@ import android.content.Context;
 public class QuizActivity extends AppCompatActivity {
 
     TextView questionText, scoreText;
-    Button opt1, opt2, opt3, opt4, bonusButton, summaryButton;
+    Button opt1, opt2, opt3, opt4, bonusButton, summaryButton, shareButton;
+    private TextView liveScore, streakText;
+    private android.widget.ProgressBar quizProgress;
+    private int correctToday;
+    private boolean scoreKnown;
     private InterstitialQuizAdManager interstitialAds;
     private RewardedQuizAdManager rewardedAds;
     private boolean bonusUnlockedToday;
@@ -62,6 +67,11 @@ public class QuizActivity extends AppCompatActivity {
         summaryButton = findViewById(R.id.btnQuizSummary);
         summaryButton.setVisibility(View.GONE);
         summaryButton.setOnClickListener(v -> showCompletionSummary());
+        shareButton = findViewById(R.id.btnShareQuizScore);
+        liveScore = findViewById(R.id.quizScoreCounter);
+        streakText = findViewById(R.id.quizStreakCounter);
+        quizProgress = findViewById(R.id.quizProgress);
+        shareButton.setOnClickListener(v -> shareQuizResult());
 
 
 
@@ -70,6 +80,12 @@ public class QuizActivity extends AppCompatActivity {
 
         questions = getAllQuestions();
         questionsAnsweredToday = getAnsweredCountToday();
+        SharedPreferences quizPrefs = getSharedPreferences("daily_quiz", MODE_PRIVATE);
+        int lastScoreDay = quizPrefs.getInt("correct_day", -1);
+        scoreKnown = questionsAnsweredToday == 0 || lastScoreDay == getToday();
+        // Never carry yesterday's correct-answer count into a new daily challenge.
+        correctToday = lastScoreDay == getToday()
+                ? quizPrefs.getInt("correct_count", 0) : 0;
         bonusUnlockedToday = getSharedPreferences("daily_quiz", MODE_PRIVATE)
                 .getInt("bonus_unlock_day", -1) == getToday();
         currentQuestionIndex = (getToday() + questionsAnsweredToday) % questions.size();
@@ -112,11 +128,14 @@ public class QuizActivity extends AppCompatActivity {
             if (id == R.id.nav_share) {
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("text/plain");
-                shareIntent.putExtra(
-                        Intent.EXTRA_TEXT,
-                        "Test your Data Privacy knowledge with Privacy Needle!\n\nhttps://play.google.com/store/apps/details?id=" + getPackageName()
-                );
-                startActivity(Intent.createChooser(shareIntent, "Share via"));
+                if (questionsAnsweredToday >= MAX_QUESTIONS_PER_DAY) {
+                    shareQuizResult();
+                } else {
+                    shareIntent.putExtra(Intent.EXTRA_TEXT,
+                            "Try the Privacy Needle daily privacy challenge!\n"
+                                    + "https://play.google.com/store/apps/details?id=" + getPackageName());
+                    startActivity(Intent.createChooser(shareIntent, "Share Privacy Needle"));
+                }
                 return true;
             }
 
@@ -151,9 +170,29 @@ public class QuizActivity extends AppCompatActivity {
 
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // A bonus may have been unlocked from the Videos catalogue.
+        if (questions != null && todayQuestion != null) {
+            boolean updatedBonus = getSharedPreferences("daily_quiz", MODE_PRIVATE)
+                    .getInt("bonus_unlock_day", -1) == getToday();
+            if (updatedBonus != bonusUnlockedToday) {
+                bonusUnlockedToday = updatedBonus;
+                showQuestion();
+            }
+        }
+    }
+
     private void showQuestion() {
         final int dailyLimit = DailyQuizPolicy.allowedQuestions(bonusUnlockedToday);
         boolean finished = questionsAnsweredToday >= dailyLimit;
+        quizProgress.setMax(dailyLimit);
+        quizProgress.setProgress(Math.min(questionsAnsweredToday, dailyLimit));
+        liveScore.setText(scoreKnown ? correctToday + " correct" : "Score not tracked");
+        streakText.setText(currentStreak() + "-day streak");
+        shareButton.setVisibility(questionsAnsweredToday >= MAX_QUESTIONS_PER_DAY
+                ? View.VISIBLE : View.GONE);
         opt1.setEnabled(!finished);
         opt2.setEnabled(!finished);
         opt3.setEnabled(!finished);
@@ -226,10 +265,13 @@ public class QuizActivity extends AppCompatActivity {
             if (isFinishing() || isDestroyed()) return;
             summaryButton.setEnabled(true);
             new AlertDialog.Builder(this)
-                    .setTitle("Today's privacy quiz")
-                    .setMessage("You completed " + questionsAnsweredToday + " question"
-                            + (questionsAnsweredToday == 1 ? "" : "s")
-                            + " today. Keep learning and come back tomorrow!")
+                    .setTitle("Your privacy challenge result")
+                    .setMessage(scoreKnown
+                            ? "You answered " + correctToday + " of " + questionsAnsweredToday
+                                    + " questions correctly. Keep your streak going!"
+                            : "You completed " + questionsAnsweredToday
+                                    + " questions today. Your accurate score will be tracked from your next challenge.")
+                    .setNeutralButton("Share result", (d, w) -> shareQuizResult())
                     .setPositiveButton("Continue learning", (d, w) -> {
                         startActivity(new Intent(this, MainActivity.class));
                         finish();
@@ -244,6 +286,7 @@ public class QuizActivity extends AppCompatActivity {
         if (questionsAnsweredToday >= dailyLimit) return;
 
         if (selectedIndex == todayQuestion.correctIndex) {
+            if (scoreKnown) correctToday++;
             Toast.makeText(this, "✅ Correct! Well done", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "❌ Wrong answer", Toast.LENGTH_SHORT).show();
@@ -251,6 +294,7 @@ public class QuizActivity extends AppCompatActivity {
 
         questionsAnsweredToday++;
         saveAttemptForToday();
+        if (questionsAnsweredToday == MAX_QUESTIONS_PER_DAY) recordCompletedDay();
 
         if (questionsAnsweredToday < dailyLimit) {
             loadNextQuestion();
@@ -263,12 +307,62 @@ public class QuizActivity extends AppCompatActivity {
     private void saveAttemptForToday() {
         SharedPreferences prefs = getSharedPreferences("daily_quiz", MODE_PRIVATE);
 
-        prefs.edit()
+        SharedPreferences.Editor edit = prefs.edit()
                 .putInt("last_attempt_day", getToday())
-                .putInt("answered_count", questionsAnsweredToday)
-                .apply();
+                .putInt("answered_count", questionsAnsweredToday);
+        if (scoreKnown) {
+            edit.putInt("correct_day", getToday())
+                    .putInt("correct_count", correctToday);
+        }
+        edit.apply();
     }
 
+
+    private int currentStreak() {
+        SharedPreferences prefs = getSharedPreferences("daily_quiz", MODE_PRIVATE);
+        int last = prefs.getInt("last_completed_day", -1);
+        return last == getToday() || last == yesterdayKey()
+                ? prefs.getInt("streak_days", 0) : 0;
+    }
+
+    private int yesterdayKey() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, -1);
+        return calendar.get(Calendar.YEAR) * 1000 + calendar.get(Calendar.DAY_OF_YEAR);
+    }
+
+    private void recordCompletedDay() {
+        SharedPreferences prefs = getSharedPreferences("daily_quiz", MODE_PRIVATE);
+        int last = prefs.getInt("last_completed_day", -1);
+        if (last == getToday()) return;
+        int next = last == yesterdayKey() ? prefs.getInt("streak_days", 0) + 1 : 1;
+        prefs.edit().putInt("last_completed_day", getToday())
+                .putInt("streak_days", next).apply();
+    }
+
+    private void shareQuizResult() {
+        if (questionsAnsweredToday < MAX_QUESTIONS_PER_DAY) {
+            Toast.makeText(this, "Complete your three daily questions first",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            Intent intent = QuizScoreCard.createShareIntent(this, questionsAnsweredToday,
+                    correctToday, scoreKnown, currentStreak());
+            startActivity(Intent.createChooser(intent, "Share your Privacy Needle score"));
+        } catch (Exception ex) {
+            // Sharing a plain-text result remains possible if image creation fails.
+            String result = scoreKnown
+                    ? correctToday + "/" + questionsAnsweredToday + " correct"
+                    : questionsAnsweredToday + " questions completed";
+            Intent fallback = new Intent(Intent.ACTION_SEND);
+            fallback.setType("text/plain");
+            fallback.putExtra(Intent.EXTRA_TEXT,
+                    "I scored " + result + " on Privacy Needle! Can you beat my result?\n"
+                    + "https://play.google.com/store/apps/details?id=" + getPackageName());
+            startActivity(Intent.createChooser(fallback, "Share quiz result"));
+        }
+    }
 
     private void loadNextQuestion() {
         currentQuestionIndex++;

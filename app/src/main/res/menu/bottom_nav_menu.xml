@@ -6,7 +6,7 @@
         android:checked="true"/>
     <item android:id="@+id/nav_exclusive"
         android:icon="@drawable/diamond_24px"
-        android:title="Resources"/>
+        android:title="Products"/>
     <item android:id="@+id/nav_video"
         android:icon="@drawable/play_circle_24px"
         android:title="Videos"/>

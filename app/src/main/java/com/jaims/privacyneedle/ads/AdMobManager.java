@@ -126,8 +126,16 @@ public final class AdMobManager {
     }
 
     public void loadFeedNativeAds(int articleCount, Runnable onUpdated) {
-        if (!BuildConfig.ADMOB_NATIVE_ENABLED || !canLoadAds() || closed) return;
-        int desired = AdPlacementPolicy.desiredNativeAds(articleCount, false);
+        loadNativeAds(AdPlacementPolicy.desiredNativeAds(articleCount, false), onUpdated);
+    }
+
+    /** Load distinct native ads for a catalogue with at least six genuine videos. */
+    public void loadVideoNativeAds(int videoCount, Runnable onUpdated) {
+        loadNativeAds(AdPlacementPolicy.desiredVideoNativeAds(videoCount), onUpdated);
+    }
+
+    private void loadNativeAds(int desired, Runnable onUpdated) {
+        if (!BuildConfig.ADMOB_NATIVE_ENABLED || !canLoadAds() || closed || desired <= 0) return;
         if (nativeAds.size() >= desired || (nativeLoader != null && nativeLoader.isLoading())) {
             return;
         }
@@ -140,12 +148,13 @@ public final class AdMobManager {
                         return;
                     }
                     nativeAds.add(ad);
-                    onUpdated.run();
+                    activity.runOnUiThread(() -> {
+                        if (!closed) onUpdated.run();
+                    });
                 })
                 .withAdListener(new AdListener() {
-                    @Override
-                    public void onAdFailedToLoad(LoadAdError error) {
-                        // No empty placeholder is inserted for unfilled impressions.
+                    @Override public void onAdFailedToLoad(LoadAdError error) {
+                        // Do not insert empty placeholders; allow a retry on later content loading.
                     }
                 })
                 .build();

@@ -26,6 +26,17 @@
         <activity android:name=".videos.VideosActivity" android:exported="false" />
         <activity android:name=".videos.VideoPlayerActivity" android:exported="false" />
 
+        <!-- Private cache image for social sharing; no broad storage permissions. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.shareprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/quiz_share_paths" />
+        </provider>
+
         <!-- Quiz reminder receiver -->
         <receiver
             android:name=".ui.QuizReminderReceiver"

@@ -15,6 +15,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.jaims.privacyneedle.R;
+import com.jaims.privacyneedle.products.ProductsActivity;
 
 /**
  * In-app YouTube player: preserve YouTube's own embed controls and origin/referrer
@@ -39,6 +40,8 @@ public class VideoPlayerActivity extends AppCompatActivity {
         String title = getIntent().getStringExtra("video_title");
         ((TextView) findViewById(R.id.videoPlayerTitle)).setText(title == null ? "Video" : title);
         findViewById(R.id.playerBack).setOnClickListener(v -> finish());
+        findViewById(R.id.playerExploreProducts).setOnClickListener(v ->
+                startActivity(new Intent(this, ProductsActivity.class)));
         findViewById(R.id.watchOnYouTube).setOnClickListener(v ->
                 startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse("https://www.youtube.com/watch?v=" + videoId))));

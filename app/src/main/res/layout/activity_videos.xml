@@ -92,13 +92,49 @@
         </LinearLayout>
     </FrameLayout>
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/openYouTubeChannel"
+        android:id="@+id/videoBonusAd"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_margin="16dp"
-        android:text="Visit our YouTube channel"
+        android:layout_height="50dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="6dp"
+        android:text="Watch an ad · Bonus quiz question"
         android:textAllCaps="false"
         android:textColor="@color/ink"
+        android:visibility="gone"
         app:backgroundTint="@color/gold"
-        app:cornerRadius="13dp"/>
+        app:cornerRadius="12dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="7dp"
+        android:paddingTop="4dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/openPrivacyProducts"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:text="Our products"
+            android:textAllCaps="false"
+            android:textColor="@color/ink"
+            app:backgroundTint="@color/warm_gold"
+            app:cornerRadius="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/openYouTubeChannel"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:layout_marginStart="6dp"
+            android:text="YouTube channel"
+            android:textAllCaps="false"
+            android:textColor="@color/ink"
+            app:backgroundTint="@color/gold"
+            app:cornerRadius="12dp"/>
+    </LinearLayout>
 </LinearLayout>

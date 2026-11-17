@@ -50,6 +50,19 @@
         android:textColor="@color/light_text"/>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/playerExploreProducts"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="18dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="7dp"
+        android:text="Explore Privacy Needle products"
+        android:textAllCaps="false"
+        android:textColor="@color/ink"
+        app:backgroundTint="@color/warm_gold"
+        app:cornerRadius="12dp"/>
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/watchOnYouTube"
         android:layout_width="match_parent"
         android:layout_height="52dp"
