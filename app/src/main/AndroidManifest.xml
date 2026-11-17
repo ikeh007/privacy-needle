@@ -17,6 +17,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivacyNeedle">
 
+        <!-- Required by Google Mobile Ads SDK. Debug uses Google's sample App ID;
+             production requires PRIVACY_NEEDLE_ADMOB_APP_ID. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${ADMOB_APP_ID}" />
+
+        <activity android:name=".videos.VideosActivity" android:exported="false" />
+        <activity android:name=".videos.VideoPlayerActivity" android:exported="false" />
+
         <!-- Quiz reminder receiver -->
         <receiver
             android:name=".ui.QuizReminderReceiver"

@@ -33,6 +33,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.jaims.privacyneedle.adapters.PostsAdapter;
+import com.jaims.privacyneedle.ads.AdMobManager;
+import com.jaims.privacyneedle.videos.VideosActivity;
+import android.net.Uri;
 import com.jaims.privacyneedle.models.Post;
 import com.jaims.privacyneedle.network.RetrofitClient;
 import com.jaims.privacyneedle.network.WordPressAPI;
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private View emptyState;
     private PostsAdapter postsAdapter;
+    private AdMobManager adsManager;
     private TabLayout tabLayout;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -91,6 +95,12 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
         bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        // A non-functional Videos button can be treated as deceptive navigation.
+        // Enable it only after the verified official YouTube channel ID is configured.
+        if (!getString(R.string.youtube_channel_id).matches("UC[A-Za-z0-9_-]{22}")) {
+            bottomNavigation.getMenu().findItem(R.id.nav_video).setVisible(false);
+        }
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setupDrawerCategories();
@@ -116,6 +126,13 @@ public class MainActivity extends AppCompatActivity {
         });
         postsAdapter = new PostsAdapter(this, postList);
         recyclerView.setAdapter(postsAdapter);
+
+        adsManager = new AdMobManager(this);
+        adsManager.requestConsentAndInitialize(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            updatePrivacyChoicesItem();
+            maybeLoadFeedAd();
+        });
 
         // Drawer toggle
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -185,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             } else if (id == R.id.nav_video) {
-                showComingSoonDialog();
+                startActivity(new Intent(this, VideosActivity.class));
             }
 
 
@@ -205,9 +222,15 @@ public class MainActivity extends AppCompatActivity {
 
                 shareApp();
 
-            } else if (id == R.id.nav_settings) {
+            } else if (id == R.id.nav_privacy_policy) {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://privacyneedle.com/privacy-policy/")));
 
-                Toast.makeText(this, "Settings coming soon", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_privacy_choices) {
+                adsManager.showPrivacyChoices(() -> {
+                    updatePrivacyChoicesItem();
+                    maybeLoadFeedAd();
+                });
 
             } else if (id == R.id.nav_about) {
 
@@ -242,12 +265,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showComingSoonDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Videos")
-                .setMessage("🎬 Video contents are coming soon.\n\nStay tuned for amazing privacy & tech videos!")
-                .setPositiveButton("OK", null)
-                .show();
+    private void updatePrivacyChoicesItem() {
+        Menu menu = navigationView.getMenu();
+        menu.findItem(R.id.nav_privacy_choices)
+                .setVisible(adsManager != null && adsManager.privacyChoicesRequired());
+    }
+
+    private void maybeLoadFeedAd() {
+        if (adsManager == null || postList.size() < 7 || currentSearchQuery != null) return;
+        adsManager.loadFeedBanner(() -> {
+            if (!isFinishing() && !isDestroyed()) {
+                postsAdapter.setBanner(adsManager.getLoadedBanner());
+            }
+        });
     }
 
     private void showAboutDialog() {
@@ -328,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
         nextPage = 1;
         totalPages = Integer.MAX_VALUE;
         postList.clear();
-        postsAdapter.notifyDataSetChanged();
+        postsAdapter.setAdvertisingEnabled(currentSearchQuery == null);
         emptyState.setVisibility(View.GONE);
         loadNextPage();
     }
@@ -379,10 +409,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 List<Post> incoming = response.body();
-                int start = postList.size();
                 postList.addAll(incoming);
                 if (!incoming.isEmpty()) {
-                    postsAdapter.notifyItemRangeInserted(start, incoming.size());
+                    // Mixed article/ad rows require a full dataset refresh.
+                    postsAdapter.notifyDataSetChanged();
+                    maybeLoadFeedAd();
                 } else if (requestedPage == 1) {
                     emptyState.setVisibility(View.VISIBLE);
                 }
@@ -411,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (activeCall != null) activeCall.cancel();
+        if (adsManager != null) adsManager.destroy();
         super.onDestroy();
     }
 

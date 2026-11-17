@@ -27,3 +27,30 @@ The app requests `POST_NOTIFICATIONS` on Android 13 or newer. A push payload may
 ## Testing
 
 Run `./gradlew :app:assembleDebug :app:testDebugUnitTest`. The GitHub Actions workflow runs this on pull requests. Also test on an Android 13+ device or emulator: fresh install, notification permission, several notification taps, tab switching, search and pagination, offline article view, and daily quiz limit.
+
+## AdMob policy-remediation integration (November 2026)
+
+Current AdMob policy centre reports **Restricted ad serving**, with “Google-served ads on screens without publisher-content” and “Site Behavior: Navigation”. An app update and approved AdMob review are required; a successful build alone does not remove a restriction.
+
+Production ad units confirmed from the account screenshots:
+
+- Banner: `ca-app-pub-7008705915557363/5695932384`
+- Interstitial: `ca-app-pub-7008705915557363/8130524035` (NOT REQUESTED during remediation)
+- Native: `ca-app-pub-7008705915557363/5999184710` (NOT REQUESTED during remediation)
+- Rewarded: `ca-app-pub-7008705915557363/8974043868` (NOT REQUESTED during remediation)
+
+The **App ID** (tilde `~`, not slash `/`) is missing and MUST come from AdMob → Apps → Privacy Needle → App settings. To enable production ads add to your **local** `~/.gradle/gradle.properties`:
+
+```properties
+PRIVACY_NEEDLE_ADMOB_APP_ID=ca-app-pub-7008705915557363~YOUR_ACTUAL_10_DIGIT_APP_SUFFIX
+```
+
+Replace the example with the exact App ID from Google. This value isn't committed. With no valid App ID, the release build shows **no ads**. Debug builds always use Google's sample App ID and test banner unit. Never test by clicking live ads.
+
+The feed only adds **one clearly labelled adaptive banner between real articles** if seven or more WordPress posts loaded and UMP permits advertising. Ads never cover navigation or appear on empty/loading screens, splash, onboarding, article WebViews, quiz or video player. We intentionally keep interstitial/native/rewarded requests off until the policy restriction is resolved and a separate placement audit is completed. Google controls approval and fill; no revenue is guaranteed.
+
+From AdMob → Privacy & messaging, create/verify the applicable GDPR and US-state consent messages; UMP refreshes consent status on each launch and exposes a Privacy choices menu item when required. Update the website/app privacy notice to reflect current SDKs and consent management and complete Google Play Data safety accurately.
+
+## YouTube videos
+
+The Videos screen reads the **public YouTube channel RSS** without requiring a YouTube Data API key, and plays selected videos through the official embedded YouTube player. Set `app/src/main/res/values/strings.xml` `youtube_channel_id` to the confirmed channel's `UC...` ID. Until that verified ID is entered, the Videos tab stays hidden rather than misleading users. No AdMob ads are shown over YouTube playback. Videos can also be opened on YouTube using the official link.

@@ -2,4 +2,9 @@
     <string name="app_name">Privacy Needle</string>
     <string name="open_drawer">Open Navigation Drawer</string>
     <string name="close_drawer">Close Navigation Drawer</string>
+    <!-- Replace with your own verified YouTube channel ID (UC followed by 22 characters).
+         The Videos navigation item stays hidden until a valid channel ID is configured. -->
+    <string name="youtube_channel_id" translatable="false"></string>
+    <string name="video_channel_heading">Privacy Needle Videos</string>
+    <string name="video_channel_subtitle">Privacy explainers, data protection and practical cybersecurity.</string>
 </resources>
