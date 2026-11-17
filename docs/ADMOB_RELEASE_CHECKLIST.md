@@ -52,7 +52,7 @@ Use the **personalized snippet** from AdMob if it differs. The Android GitHub re
 4. Test the article reader, back navigation, search, quiz, and video player (no AdMob overlay).
 5. Use test devices/ad units during development. Do **not** click live ads.
 6. In AdMob → Privacy & messaging, verify GDPR and US-state messages where applicable; check privacy options entry and update the website privacy policy and Play Data safety details as appropriate.
-7. Ensure your YouTube channel ID has been configured and the Videos tab displays real videos before enabling the tab.
+7. The channel ID `UCo03u7ZOc9bYFUhPAJGf8TQ` has been configured and the Videos tab is enabled. Verify the RSS feed, the correct publisher identity, and actual playback on a device before release.
 8. Publish the corrected AAB to the Play Store. In AdMob Policy centre, select **Start review process** once the compliant version is live. Google alone decides whether to lift restrictions.
 
 ## Revenue optimization after policy resolution
