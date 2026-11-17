@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jaims.privacyneedle.R;
+import com.jaims.privacyneedle.ads.AdMobManager;
+import com.jaims.privacyneedle.ads.AdPlacementPolicy;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -30,6 +32,7 @@ public class VideosActivity extends AppCompatActivity {
     private View empty;
     private TextView message;
     private VideosAdapter adapter;
+    private AdMobManager adsManager;
     private final List<VideoItem> items = new ArrayList<>();
     private String channelId;
 
@@ -47,6 +50,8 @@ public class VideosActivity extends AppCompatActivity {
         list.setLayoutManager(new LinearLayoutManager(this));
         adapter = new VideosAdapter(this, items);
         list.setAdapter(adapter);
+        adsManager = new AdMobManager(this);
+        adsManager.requestConsentAndInitialize(this::maybeLoadGalleryAd);
 
         findViewById(R.id.videoBack).setOnClickListener(v -> finish());
         findViewById(R.id.videosRetry).setOnClickListener(v -> refresh());
@@ -62,6 +67,21 @@ public class VideosActivity extends AppCompatActivity {
             empty.setVisibility(View.VISIBLE);
             message.setText("This video channel has not been connected yet.");
         }
+    }
+
+    private void maybeLoadGalleryAd() {
+        if (adsManager == null || !AdPlacementPolicy.mayShowVideoBanner(items.size())) return;
+        adsManager.loadFeedBanner(() -> {
+            if (!isFinishing() && !isDestroyed()) {
+                adapter.setBanner(adsManager.getLoadedBanner());
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (adsManager != null) adsManager.destroy();
+        super.onDestroy();
     }
 
     private boolean isConfigured() {
@@ -126,6 +146,7 @@ public class VideosActivity extends AppCompatActivity {
                 items.clear();
                 items.addAll(loaded);
                 adapter.notifyDataSetChanged();
+                maybeLoadGalleryAd();
                 if (items.isEmpty()) {
                     empty.setVisibility(View.VISIBLE);
                     message.setText(finalError != null ? finalError : "This channel has no public videos yet.");

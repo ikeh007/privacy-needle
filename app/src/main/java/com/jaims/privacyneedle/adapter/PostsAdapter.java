@@ -105,7 +105,8 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int type) {
         if (type == TYPE_NATIVE || type == TYPE_BANNER) {
             return new AdHolder(LayoutInflater.from(context)
-                    .inflate(R.layout.item_feed_ad, parent, false));
+                    .inflate(type == TYPE_NATIVE ? R.layout.item_native_container
+                            : R.layout.item_feed_ad, parent, false));
         }
         return new PostHolder(LayoutInflater.from(context)
                 .inflate(R.layout.item_post, parent, false));

@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         adsManager.requestConsentAndInitialize(() -> {
             if (isFinishing() || isDestroyed()) return;
             updatePrivacyChoicesItem();
-            maybeLoadFeedAd();
+            maybeLoadFeedAds();
         });
 
         // Drawer toggle
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_privacy_choices) {
                 adsManager.showPrivacyChoices(() -> {
                     updatePrivacyChoicesItem();
-                    maybeLoadFeedAd();
+                    maybeLoadFeedAds();
                 });
 
             } else if (id == R.id.nav_about) {
@@ -272,14 +272,22 @@ public class MainActivity extends AppCompatActivity {
                 .setVisible(adsManager != null && adsManager.privacyChoicesRequired());
     }
 
-    private void maybeLoadFeedAd() {
-        if (adsManager == null ||
-                !AdPlacementPolicy.mayShowFeedBanner(postList.size(), currentSearchQuery != null)) return;
-        adsManager.loadFeedBanner(() -> {
-            if (!isFinishing() && !isDestroyed()) {
-                postsAdapter.setBanner(adsManager.getLoadedBanner());
-            }
-        });
+    private void maybeLoadFeedAds() {
+        if (adsManager == null || currentSearchQuery != null) return;
+        if (AdPlacementPolicy.mayShowFeedBanner(postList.size(), false)) {
+            adsManager.loadFeedBanner(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    postsAdapter.setBanner(adsManager.getLoadedBanner());
+                }
+            });
+        }
+        if (AdPlacementPolicy.mayShowFeedNative(postList.size(), false)) {
+            adsManager.loadFeedNativeAds(postList.size(), () -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    postsAdapter.setNativeAds(adsManager.getLoadedNativeAds());
+                }
+            });
+        }
     }
 
     private void showAboutDialog() {
@@ -397,7 +405,11 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!response.isSuccessful() || response.body() == null) {
                     emptyState.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
-                    Toast.makeText(MainActivity.this, "Unable to load articles", Toast.LENGTH_SHORT).show();
+                    android.util.Log.e("PrivacyNeedleAPI",
+                            "WordPress feed returned HTTP " + response.code());
+                    Toast.makeText(MainActivity.this,
+                            "Articles temporarily unavailable (HTTP " + response.code() + ")",
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -414,8 +426,8 @@ public class MainActivity extends AppCompatActivity {
                 postList.addAll(incoming);
                 if (!incoming.isEmpty()) {
                     // Mixed article/ad rows require a full dataset refresh.
-                    postsAdapter.notifyDataSetChanged();
-                    maybeLoadFeedAd();
+                    postsAdapter.refreshRows();
+                    maybeLoadFeedAds();
                 } else if (requestedPage == 1) {
                     emptyState.setVisibility(View.VISIBLE);
                 }
@@ -434,6 +446,8 @@ public class MainActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 if (!request.isCanceled()) {
                     emptyState.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
+                    android.util.Log.e("PrivacyNeedleAPI",
+                            "Failed to load WordPress articles", error);
                     Toast.makeText(MainActivity.this,
                             "Connection problem. Please try again.", Toast.LENGTH_LONG).show();
                 }
