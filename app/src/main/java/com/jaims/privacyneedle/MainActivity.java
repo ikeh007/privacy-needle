@@ -7,6 +7,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.view.ViewGroup;
+import com.google.android.gms.ads.AdView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -37,6 +40,7 @@ import com.jaims.privacyneedle.ads.AdMobManager;
 import com.jaims.privacyneedle.ads.AdPlacementPolicy;
 import com.jaims.privacyneedle.videos.VideosActivity;
 import com.jaims.privacyneedle.products.ProductsActivity;
+import com.jaims.privacyneedle.scam.ScamChallengeActivity;
 import android.net.Uri;
 import com.jaims.privacyneedle.models.Post;
 import com.jaims.privacyneedle.network.RetrofitClient;
@@ -57,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private View emptyState;
     private PostsAdapter postsAdapter;
     private AdMobManager adsManager;
+    private View topBannerWrapper;
+    private FrameLayout topBannerContainer;
     private TabLayout tabLayout;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -92,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progress);
         emptyState = findViewById(R.id.emptyState);
+        topBannerWrapper = findViewById(R.id.topBannerWrapper);
+        topBannerContainer = findViewById(R.id.topBannerContainer);
         findViewById(R.id.retryButton).setOnClickListener(v -> loadNextPage());
         tabLayout = findViewById(R.id.tabLayout);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -99,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.bottom_navigation);
         findViewById(R.id.openProductsButton)
                 .setOnClickListener(v -> startActivity(new Intent(this, ProductsActivity.class)));
+        findViewById(R.id.openScamChallenge)
+                .setOnClickListener(v -> startActivity(new Intent(this, ScamChallengeActivity.class)));
 
         // A non-functional Videos button can be treated as deceptive navigation.
         // Enable it only after the verified official YouTube channel ID is configured.
@@ -229,6 +239,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_products) {
                 startActivity(new Intent(this, ProductsActivity.class));
 
+            } else if (id == R.id.nav_scam_challenge) {
+                startActivity(new Intent(this, ScamChallengeActivity.class));
+
             } else if (id == R.id.nav_privacy_policy) {
                 startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse("https://privacyneedle.com/privacy-policy/")));
@@ -280,6 +293,21 @@ public class MainActivity extends AppCompatActivity {
 
     private void maybeLoadFeedAds() {
         if (adsManager == null || currentSearchQuery != null) return;
+        if (AdPlacementPolicy.mayShowTopBanner(postList.size(), false)) {
+            adsManager.loadTopBanner(() -> {
+                if (isFinishing() || isDestroyed()
+                        || !AdPlacementPolicy.mayShowTopBanner(
+                                postList.size(), currentSearchQuery != null)) return;
+                AdView top = adsManager.getLoadedTopBanner();
+                if (top == null) return;
+                if (top.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) top.getParent()).removeView(top);
+                }
+                topBannerContainer.removeAllViews();
+                topBannerContainer.addView(top);
+                topBannerWrapper.setVisibility(View.VISIBLE);
+            });
+        }
         if (AdPlacementPolicy.mayShowFeedBanner(postList.size(), false)) {
             adsManager.loadFeedBanner(() -> {
                 if (!isFinishing() && !isDestroyed()) {
@@ -374,6 +402,8 @@ public class MainActivity extends AppCompatActivity {
         nextPage = 1;
         totalPages = Integer.MAX_VALUE;
         postList.clear();
+        // A top banner must never remain visible on search or empty/error screens.
+        topBannerWrapper.setVisibility(View.GONE);
         postsAdapter.setAdvertisingEnabled(currentSearchQuery == null);
         emptyState.setVisibility(View.GONE);
         loadNextPage();

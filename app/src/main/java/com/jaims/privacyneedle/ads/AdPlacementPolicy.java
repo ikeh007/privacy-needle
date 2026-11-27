@@ -19,6 +19,21 @@ public final class AdPlacementPolicy {
         if (!mayShowFeedNative(articleCount, isSearch)) return 0;
         return Math.min(MAX_NATIVE_ADS_PER_FEED, articleCount / NATIVE_ARTICLE_INTERVAL);
     }
+    public static boolean mayShowTopBanner(int articleCount, boolean isSearch) {
+        return mayShowFeedBanner(articleCount, isSearch);
+    }
+
+    public static int desiredProductNativeAds(int productCount) {
+        // Product discovery also contains explanatory editorial tips. Never
+        // display an ad-only or link-only page, and cap ads at two per session.
+        if (productCount < 7) return 0;
+        return Math.min(2, productCount / 3);
+    }
+
+    public static boolean mayShowGameResultsAds(boolean challengeCompleted) {
+        return challengeCompleted;
+    }
+
     public static boolean mayShowVideoBanner(int videoCount) {
         return videoCount >= 6;
     }

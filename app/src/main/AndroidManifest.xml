@@ -23,6 +23,28 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${ADMOB_APP_ID}" />
 
+        <activity
+            android:name=".scam.ScamChallengeActivity"
+            android:exported="true">
+            <!-- HTTPS link: production verification requires the matching website
+                 https://play.privacyneedle.com/.well-known/assetlinks.json -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="play.privacyneedle.com"
+                    android:pathPrefix="/challenge" />
+            </intent-filter>
+            <!-- Optional internal/test deep link; do not share this as the public URL. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="privacyneedle" android:host="challenge" />
+            </intent-filter>
+        </activity>
         <activity android:name=".products.ProductsActivity" android:exported="false" />
         <activity android:name=".videos.VideosActivity" android:exported="false" />
         <activity android:name=".videos.VideoPlayerActivity" android:exported="false" />
@@ -54,6 +76,7 @@
         <!-- Splash activity (launcher) -->
         <activity
             android:name=".SplashActivity"
+            android:theme="@style/Theme.PrivacyNeedle.Launch"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

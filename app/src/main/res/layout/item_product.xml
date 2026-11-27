@@ -47,6 +47,18 @@
             android:lineSpacingExtra="3dp"/>
 
         <TextView
+            android:id="@+id/productLearningNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/ink"
+            android:background="@drawable/bg_gold_tag"
+            android:padding="13dp"
+            android:textSize="13sp"
+            android:lineSpacingExtra="3dp"
+            android:text="Practical privacy tip"/>
+
+        <TextView
             android:id="@+id/productDomain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

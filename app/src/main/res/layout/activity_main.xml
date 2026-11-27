@@ -30,7 +30,7 @@
                 android:layout_width="160dp"
                 android:layout_height="44dp"
                 android:layout_gravity="center"
-                android:src="@drawable/privacyneedl"
+                android:src="@drawable/privacy_needle"
                 android:contentDescription="@string/app_name"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"/>
@@ -84,6 +84,45 @@
                     android:textSize="13sp"
                     android:lineSpacingExtra="2dp"/>
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/topBannerWrapper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ADVERTISEMENT"
+                    android:textSize="10sp"
+                    android:letterSpacing="0.12"
+                    android:textColor="@color/text_secondary"/>
+
+                <FrameLayout
+                    android:id="@+id/topBannerContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:foregroundGravity="center"/>
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/openScamChallenge"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="12dp"
+                android:text="⚡  SCAM OF THE DAY  ·  PLAY NOW"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="@color/ink"
+                app:backgroundTint="@color/gold"
+                app:cornerRadius="14dp"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/openProductsButton"

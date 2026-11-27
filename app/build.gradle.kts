@@ -32,7 +32,7 @@ android {
         applicationId = "com.jaims.privacyneedle"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
+        versionCode = 8
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -72,6 +72,8 @@ android {
 dependencies {
     // Google Mobile Ads SDK (legacy APIs) and User Messaging Platform privacy consent.
     implementation("com.google.android.gms:play-services-ads:25.5.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("com.google.zxing:core:3.5.3")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")

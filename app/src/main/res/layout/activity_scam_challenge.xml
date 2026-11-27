@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@color/canvas"
+    android:fillViewport="true"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="28dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="18dp"
+            android:orientation="vertical"
+            android:background="@color/ink">
+
+            <TextView
+                android:id="@+id/scamBack"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:gravity="center_vertical"
+                android:text="‹   Privacy Needle"
+                android:textColor="@color/gold"
+                android:textSize="15sp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:letterSpacing="0.14"
+                android:text="DAILY DIGITAL SAFETY"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:textColor="@color/gold"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Scam of the Day"
+                android:textStyle="bold"
+                android:textSize="31sp"
+                android:textColor="@color/white"/>
+
+            <TextView
+                android:id="@+id/scamSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="15dp"
+                android:text="30 seconds. One message. Trust your instincts."
+                android:textSize="14sp"
+                android:textColor="@color/light_text"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:id="@+id/scamCategory"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_gold_tag"
+                android:padding="11dp"
+                android:text="WHATSAPP"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.10"
+                android:textColor="@color/gold_deep"/>
+
+            <TextView
+                android:id="@+id/scamTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="00:30"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/ink"/>
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/scamTimerProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:layout_marginStart="18dp"
+            android:layout_marginEnd="18dp"
+            android:max="30"
+            android:progress="30"
+            android:progressTint="@color/gold"
+            android:progressBackgroundTint="@color/stroke"/>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/scamMessageCard"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginTop="18dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardElevation="0dp"
+            app:cardCornerRadius="22dp"
+            app:strokeColor="@color/stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="INCOMING MESSAGE"
+                    android:letterSpacing="0.13"
+                    android:textColor="@color/gold_deep"
+                    android:textStyle="bold"
+                    android:textSize="10sp"/>
+
+                <TextView
+                    android:id="@+id/scamSender"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="13dp"
+                    android:text="Sender"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/ink"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="14dp"
+                    android:background="@color/stroke"/>
+
+                <TextView
+                    android:id="@+id/scamMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Message goes here"
+                    android:textSize="18sp"
+                    android:lineSpacingExtra="5dp"
+                    android:textColor="@color/ink"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:id="@+id/scamIntroPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="18dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Can you spot the warning signs?"
+                android:textSize="18sp"
+                android:textColor="@color/ink"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/scamFriendPrompt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Beat the timer and challenge someone you know."
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scamStart"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="14dp"
+                android:text="Start 30-second challenge"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@color/ink"
+                app:backgroundTint="@color/gold"
+                app:cornerRadius="15dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/scamAnswerPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="18dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="What's your verdict?"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/ink"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scamAnswerScam"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="14dp"
+                android:text="This looks like a scam"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@color/ink"
+                app:backgroundTint="@color/gold"
+                app:cornerRadius="15dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scamAnswerLegit"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="9dp"
+                android:text="This could be legitimate"
+                android:textAllCaps="false"
+                android:textColor="@color/ink"
+                app:backgroundTint="@color/white"
+                app:strokeColor="@color/stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="15dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/scamResultPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="18dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/ink"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="23dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/scamResultTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Great instincts!"
+                        android:textSize="23sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"/>
+
+                    <TextView
+                        android:id="@+id/scamResultScore"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="160"
+                        android:textStyle="bold"
+                        android:textSize="55sp"
+                        android:textColor="@color/gold"/>
+
+                    <TextView
+                        android:id="@+id/scamFriendCompare"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Share this result and challenge a friend."
+                        android:layout_marginTop="3dp"
+                        android:textSize="14sp"
+                        android:textColor="@color/light_text"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="19dp"
+                android:text="THE VERDICT"
+                android:letterSpacing="0.12"
+                android:textColor="@color/gold_deep"
+                android:textSize="11sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/scamVerdict"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="A scam"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/ink"/>
+
+            <TextView
+                android:id="@+id/scamExplanation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="11dp"
+                android:textSize="15sp"
+                android:lineSpacingExtra="5dp"
+                android:textColor="@color/text_secondary"/>
+
+            <TextView
+                android:id="@+id/scamTip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="11dp"
+                android:background="@drawable/bg_gold_tag"
+                android:padding="15dp"
+                android:textSize="14sp"
+                android:lineSpacingExtra="3dp"
+                android:textColor="@color/ink"/>
+
+            <FrameLayout
+                android:id="@+id/scamResultNativeSlot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scamShare"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="20dp"
+                android:text="Challenge a friend · Share score"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@color/ink"
+                app:backgroundTint="@color/gold"
+                app:cornerRadius="15dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scamBonus"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="9dp"
+                android:text="Watch an ad · Unlock bonus practice"
+                android:textAllCaps="false"
+                android:textColor="@color/ink"
+                android:visibility="gone"
+                app:backgroundTint="@color/warm_gold"
+                app:cornerRadius="14dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scamMore"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="9dp"
+                android:text="Explore more digital safety tools"
+                android:textAllCaps="false"
+                android:textColor="@color/ink"
+                app:backgroundTint="@color/white"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/stroke"
+                app:cornerRadius="14dp"/>
+
+            <LinearLayout
+                android:id="@+id/scamAdWrapper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ADVERTISEMENT"
+                    android:letterSpacing="0.10"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp"/>
+
+                <FrameLayout
+                    android:id="@+id/scamAdContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="50dp"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
