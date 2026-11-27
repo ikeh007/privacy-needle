@@ -12,6 +12,7 @@ import android.view.View;
 import com.jaims.privacyneedle.ads.RewardedQuizAdManager;
 import com.jaims.privacyneedle.ads.DailyQuizPolicy;
 import com.jaims.privacyneedle.ads.InterstitialQuizAdManager;
+import com.jaims.privacyneedle.ads.GameResultAds;
 import com.jaims.privacyneedle.game.QuizScoreCard;
 
 import com.jaims.privacyneedle.models.QuizQuestion;
@@ -40,6 +41,7 @@ public class QuizActivity extends AppCompatActivity {
     private int correctToday;
     private boolean scoreKnown;
     private InterstitialQuizAdManager interstitialAds;
+    private GameResultAds gameResultAds;
     private RewardedQuizAdManager rewardedAds;
     private boolean bonusUnlockedToday;
     private boolean bonusAdLoadingStarted;
@@ -72,6 +74,10 @@ public class QuizActivity extends AppCompatActivity {
         streakText = findViewById(R.id.quizStreakCounter);
         quizProgress = findViewById(R.id.quizProgress);
         shareButton.setOnClickListener(v -> shareQuizResult());
+        gameResultAds = new GameResultAds(this,
+                R.id.quizResultNativeSlot,
+                R.id.quizResultBannerWrapper,
+                R.id.quizResultBannerContainer);
 
 
 
@@ -201,6 +207,8 @@ public class QuizActivity extends AppCompatActivity {
         summaryButton.setVisibility(finished ? View.VISIBLE : View.GONE);
 
         if (finished) {
+            // Only after the final free/bonus question; never adjacent to live answer taps.
+            gameResultAds.showCompletedResult();
             scoreText.setText(questionsAnsweredToday + " of " + dailyLimit + " completed today");
             questionText.setText(bonusUnlockedToday
                     ? "You've completed your bonus question. Come back tomorrow!"
@@ -864,6 +872,7 @@ public class QuizActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (rewardedAds != null) rewardedAds.destroy();
         if (interstitialAds != null) interstitialAds.destroy();
+        if (gameResultAds != null) gameResultAds.destroy();
         super.onDestroy();
     }
 

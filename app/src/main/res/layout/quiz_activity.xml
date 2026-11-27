@@ -216,6 +216,13 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <FrameLayout
+                android:id="@+id/quizResultNativeSlot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"/>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShareQuizScore"
                 android:layout_width="match_parent"
@@ -262,6 +269,30 @@
                 android:gravity="center"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"/>
+
+            <LinearLayout
+                android:id="@+id/quizResultBannerWrapper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ADVERTISEMENT"
+                    android:textSize="10sp"
+                    android:letterSpacing="0.12"
+                    android:textColor="@color/text_secondary"/>
+
+                <FrameLayout
+                    android:id="@+id/quizResultBannerContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

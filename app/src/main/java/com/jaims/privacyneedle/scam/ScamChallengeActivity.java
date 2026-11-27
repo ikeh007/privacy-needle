@@ -19,7 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.ads.AdView;
 import com.google.android.material.button.MaterialButton;
 import com.jaims.privacyneedle.R;
-import com.jaims.privacyneedle.ads.AdMobManager;
+import com.jaims.privacyneedle.ads.GameResultAds;
 import com.jaims.privacyneedle.ads.RewardedQuizAdManager;
 import com.jaims.privacyneedle.products.ProductsActivity;
 
@@ -48,7 +48,7 @@ public final class ScamChallengeActivity extends AppCompatActivity {
     private View introPanel, answerPanel, resultPanel;
     private View adWrapper;
     private MaterialButton bonusButton;
-    private AdMobManager ads;
+    private GameResultAds gameResultAds;
     private RewardedQuizAdManager rewarded;
     private boolean rewardLoading;
 
@@ -108,12 +108,13 @@ public final class ScamChallengeActivity extends AppCompatActivity {
             timedOut = savedInstanceState.getBoolean("timedOut");
         }
         render();
-        ads = new AdMobManager(this);
+        gameResultAds = new GameResultAds(this,
+                R.id.scamResultNativeSlot, R.id.scamAdWrapper, R.id.scamAdContainer);
         rewarded = new RewardedQuizAdManager(this);
-        ads.requestConsentAndInitialize(() -> {
-            if (resolved && !isFinishing() && !isDestroyed()) loadResultBanner();
-        });
-        if (resolved) loadBonusAdIfEligible();
+        if (resolved) {
+            gameResultAds.showCompletedResult();
+            loadBonusAdIfEligible();
+        }
     }
 
     private void render() {
@@ -199,7 +200,7 @@ public final class ScamChallengeActivity extends AppCompatActivity {
             }
         }
         render();
-        loadResultBanner();
+        gameResultAds.showCompletedResult();
         loadBonusAdIfEligible();
     }
 
@@ -218,22 +219,6 @@ public final class ScamChallengeActivity extends AppCompatActivity {
                     + "\nFriend's shared score: " + friendScore + " points"
                 : "Send this exact challenge to a friend and compare scores.";
         ((TextView) findViewById(R.id.scamFriendCompare)).setText(compare);
-    }
-
-    private void loadResultBanner() {
-        if (ads == null || !resolved || isFinishing() || isDestroyed()) return;
-        ads.loadFeedBanner(() -> {
-            if (isFinishing() || isDestroyed()) return;
-            AdView banner = ads.getLoadedBanner();
-            if (banner == null) return;
-            FrameLayout container = findViewById(R.id.scamAdContainer);
-            if (banner.getParent() instanceof ViewGroup) {
-                ((ViewGroup) banner.getParent()).removeView(banner);
-            }
-            container.removeAllViews();
-            container.addView(banner);
-            adWrapper.setVisibility(View.VISIBLE);
-        });
     }
 
     private boolean bonusAvailable() {
@@ -320,7 +305,7 @@ public final class ScamChallengeActivity extends AppCompatActivity {
 
     @Override protected void onDestroy() {
         if (countdown != null) countdown.cancel();
-        if (ads != null) ads.destroy();
+        if (gameResultAds != null) gameResultAds.destroy();
         if (rewarded != null) rewarded.destroy();
         super.onDestroy();
     }

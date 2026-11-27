@@ -19,6 +19,14 @@ public final class AdPlacementPolicy {
         if (!mayShowFeedNative(articleCount, isSearch)) return 0;
         return Math.min(MAX_NATIVE_ADS_PER_FEED, articleCount / NATIVE_ARTICLE_INTERVAL);
     }
+    public static boolean mayShowTopBanner(int articleCount, boolean isSearch) {
+        return mayShowFeedBanner(articleCount, isSearch);
+    }
+
+    public static boolean mayShowGameResultsAds(boolean challengeCompleted) {
+        return challengeCompleted;
+    }
+
     public static boolean mayShowVideoBanner(int videoCount) {
         return videoCount >= 6;
     }

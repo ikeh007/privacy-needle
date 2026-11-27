@@ -336,6 +336,13 @@
                 android:lineSpacingExtra="3dp"
                 android:textColor="@color/ink"/>
 
+            <FrameLayout
+                android:id="@+id/scamResultNativeSlot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"/>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/scamShare"
                 android:layout_width="match_parent"

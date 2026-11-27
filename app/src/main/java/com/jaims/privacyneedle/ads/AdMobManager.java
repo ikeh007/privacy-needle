@@ -33,6 +33,8 @@ public final class AdMobManager {
     private final Activity activity;
     private final ConsentInformation consentInfo;
     private AdView banner;
+    private AdView topBanner;
+    private boolean topBannerLoading;
     private final List<NativeAd> nativeAds = new ArrayList<>();
     private AdLoader nativeLoader;
     private boolean sdkReady;
@@ -125,6 +127,46 @@ public final class AdMobManager {
         adView.loadAd(new AdRequest.Builder().build());
     }
 
+    /** Dedicated top-of-news banner, separate from the in-feed banner AdView. */
+    public void loadTopBanner(Runnable onLoaded) {
+        if (!canLoadAds() || topBannerLoading || topBanner != null) {
+            if (!closed && topBanner != null) onLoaded.run();
+            return;
+        }
+        topBannerLoading = true;
+        AdView ad = new AdView(activity);
+        ad.setAdUnitId(BuildConfig.DEBUG ? TEST_BANNER : LIVE_BANNER);
+        float density = activity.getResources().getDisplayMetrics().density;
+        int width = (int) (activity.getResources().getDisplayMetrics().widthPixels / density);
+        ad.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+                activity, Math.max(1, width - 32)));
+        ad.setAdListener(new AdListener() {
+            @Override public void onAdLoaded() {
+                topBannerLoading = false;
+                if (closed) {
+                    ad.destroy();
+                    return;
+                }
+                topBanner = ad;
+                onLoaded.run();
+            }
+            @Override public void onAdFailedToLoad(LoadAdError error) {
+                topBannerLoading = false;
+                ad.destroy();
+            }
+        });
+        ad.loadAd(new AdRequest.Builder().build());
+    }
+
+    public AdView getLoadedTopBanner() {
+        return topBanner;
+    }
+
+    /** One additional native placement on a completed game-result page. */
+    public void loadGameResultNativeAd(Runnable onUpdated) {
+        loadNativeAds(1, onUpdated);
+    }
+
     public void loadFeedNativeAds(int articleCount, Runnable onUpdated) {
         loadNativeAds(AdPlacementPolicy.desiredNativeAds(articleCount, false), onUpdated);
     }
@@ -177,6 +219,13 @@ public final class AdMobManager {
         closed = true;
         for (NativeAd ad : nativeAds) ad.destroy();
         nativeAds.clear();
+        if (topBanner != null) {
+            if (topBanner.getParent() instanceof ViewGroup) {
+                ((ViewGroup) topBanner.getParent()).removeView(topBanner);
+            }
+            topBanner.destroy();
+            topBanner = null;
+        }
         if (banner != null) {
             if (banner.getParent() instanceof ViewGroup) {
                 ((ViewGroup) banner.getParent()).removeView(banner);

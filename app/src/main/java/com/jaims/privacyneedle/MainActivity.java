@@ -7,6 +7,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.view.ViewGroup;
+import com.google.android.gms.ads.AdView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -58,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private View emptyState;
     private PostsAdapter postsAdapter;
     private AdMobManager adsManager;
+    private View topBannerWrapper;
+    private FrameLayout topBannerContainer;
     private TabLayout tabLayout;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -93,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progress);
         emptyState = findViewById(R.id.emptyState);
+        topBannerWrapper = findViewById(R.id.topBannerWrapper);
+        topBannerContainer = findViewById(R.id.topBannerContainer);
         findViewById(R.id.retryButton).setOnClickListener(v -> loadNextPage());
         tabLayout = findViewById(R.id.tabLayout);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -286,6 +293,21 @@ public class MainActivity extends AppCompatActivity {
 
     private void maybeLoadFeedAds() {
         if (adsManager == null || currentSearchQuery != null) return;
+        if (AdPlacementPolicy.mayShowTopBanner(postList.size(), false)) {
+            adsManager.loadTopBanner(() -> {
+                if (isFinishing() || isDestroyed()
+                        || !AdPlacementPolicy.mayShowTopBanner(
+                                postList.size(), currentSearchQuery != null)) return;
+                AdView top = adsManager.getLoadedTopBanner();
+                if (top == null) return;
+                if (top.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) top.getParent()).removeView(top);
+                }
+                topBannerContainer.removeAllViews();
+                topBannerContainer.addView(top);
+                topBannerWrapper.setVisibility(View.VISIBLE);
+            });
+        }
         if (AdPlacementPolicy.mayShowFeedBanner(postList.size(), false)) {
             adsManager.loadFeedBanner(() -> {
                 if (!isFinishing() && !isDestroyed()) {
@@ -380,6 +402,8 @@ public class MainActivity extends AppCompatActivity {
         nextPage = 1;
         totalPages = Integer.MAX_VALUE;
         postList.clear();
+        // A top banner must never remain visible on search or empty/error screens.
+        topBannerWrapper.setVisibility(View.GONE);
         postsAdapter.setAdvertisingEnabled(currentSearchQuery == null);
         emptyState.setVisibility(View.GONE);
         loadNextPage();
