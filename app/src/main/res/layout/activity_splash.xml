@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:gravity="center"
-            android:text="KNOW MORE. PROTECT MORE."
+            android:text="NO LEAK. NO WAHALA ."
             android:letterSpacing="0.14"
             android:textColor="@color/gold"
             android:textSize="12sp"
