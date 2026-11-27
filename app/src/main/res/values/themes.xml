@@ -13,4 +13,9 @@
         <item name="colorControlNormal">@color/ink</item>
     </style>
     <style name="Theme.PrivacyNeedle" parent="Base.Theme.PrivacyNeedle" />
+    <style name="Theme.PrivacyNeedle.Launch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ink</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/pneedle_app</item>
+        <item name="postSplashScreenTheme">@style/Theme.PrivacyNeedle</item>
+    </style>
 </resources>

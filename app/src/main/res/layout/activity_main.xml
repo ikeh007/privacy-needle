@@ -86,6 +86,19 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/openScamChallenge"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="12dp"
+                android:text="⚡  SCAM OF THE DAY  ·  PLAY NOW"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="@color/ink"
+                app:backgroundTint="@color/gold"
+                app:cornerRadius="14dp"/>
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/openProductsButton"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"

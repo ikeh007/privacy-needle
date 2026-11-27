@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#171717">
+<meta name="description" content="30 seconds. One suspicious message. Beat your friend's score in Privacy Needle Scam of the Day.">
+<title>Scam of the Day | Privacy Needle</title>
+<style>
+:root{color-scheme:light;--gold:#ffb300;--ink:#171717;--cream:#f8f8f6;--muted:#646464}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}
+header{background:linear-gradient(140deg,#0b0b0b,#29231b);color:white;padding:26px max(20px,calc((100vw - 640px)/2))}
+.brand{color:var(--gold);font-weight:800;letter-spacing:.16em;font-size:12px}.eyebrow{margin:20px 0 4px;color:var(--gold);font-weight:700;letter-spacing:.13em;font-size:11px}
+h1{font-size:clamp(30px,7vw,42px);line-height:1.14;margin:8px 0}header p{color:#e7e3db;margin-bottom:4px}
+main{max-width:640px;margin:0 auto;padding:18px 18px 50px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.tag{background:#fff6e0;color:#896400;border-radius:9px;padding:8px 12px;font-weight:800;letter-spacing:.06em;font-size:11px}
+.timer{font-weight:800;font-size:25px}.track{height:6px;background:#e7e4dc;border-radius:4px;overflow:hidden}.bar{height:100%;width:100%;background:var(--gold);transition:width .12s linear}
+.message{background:white;border:1px solid #e7e4dc;border-radius:22px;margin:20px 0 14px;padding:22px;box-shadow:0 12px 24px rgba(23,23,23,.03)}
+.overline{font-size:11px;color:#8b6800;letter-spacing:.12em;font-weight:800}.sender{font-weight:800;margin-top:12px}.line{border-top:1px solid #e7e4dc;margin:16px 0}.copy{font-size:19px;line-height:1.58;white-space:pre-wrap;overflow-wrap:anywhere}
+.panel{margin-top:18px}.panel h2{font-size:21px;margin:6px 0 12px}
+button,.btn{display:block;width:100%;padding:17px 15px;margin-top:10px;border-radius:14px;border:1px solid #e7e4dc;background:white;color:var(--ink);font:700 15px system-ui,sans-serif;text-align:center;cursor:pointer;text-decoration:none}
+.primary{background:var(--gold);border-color:var(--gold)}.secondary{background:#fff6e0}.btn:focus-visible,button:focus-visible{outline:3px solid #856000;outline-offset:3px}
+[hidden]{display:none!important}.resultbox{background:var(--ink);border-radius:22px;color:white;padding:24px}.resultbox strong{font-size:46px;display:block;color:var(--gold)}.resultbox small{color:#e7e3db}
+.tip{background:#fff6e0;border-radius:12px;padding:14px}.muted{color:var(--muted)}footer{margin-top:32px;font-size:12px;text-align:center;color:#646464}
+@media(prefers-reduced-motion:reduce){.bar{transition:none}}
+</style>
+</head>
+<body>
+<header><div class="brand">PRIVACY NEEDLE</div><div class="eyebrow">DAILY DIGITAL SAFETY</div><h1>Scam of the Day</h1><p>30 seconds. One message. Protect your instincts.</p></header>
+<main>
+<div class="meta"><span class="tag" id="category">DAILY CHALLENGE</span><span class="timer" id="timer" role="timer" aria-live="off">00:30</span></div>
+<div class="track" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="30" aria-valuenow="30" id="timerTrack"><div class="bar" id="bar"></div></div>
+<section class="message" aria-label="Fictional message"><div class="overline">INCOMING MESSAGE · FICTIONAL SCENARIO</div><div class="sender" id="sender"></div><div class="line"></div><div class="copy" id="message"></div></section>
+<section id="intro" class="panel"><h2>Scam or legitimate?</h2><p class="muted" id="friendPrompt">Decide in 30 seconds. Challenge a friend afterwards.</p><button class="primary" id="start">Start the challenge</button></section>
+<section id="answers" class="panel" hidden><h2>What's your verdict?</h2><button class="primary" id="scam">This looks like a scam</button><button id="legit">This could be legitimate</button></section>
+<section id="results" class="panel" hidden>
+<div class="resultbox"><div id="resultHeading">Your result</div><strong id="resultScore">0 POINTS</strong><small id="compare">Challenge a friend to beat your score.</small></div>
+<h2 style="margin-top:24px">The verdict</h2><h3 id="verdict"></h3><p id="explanation" class="muted"></p><p id="tip" class="tip"></p>
+<button id="share" class="primary">Challenge a friend · Share score</button>
+<a class="btn secondary" href="https://play.google.com/store/apps/details?id=com.jaims.privacyneedle" rel="noopener">Get the Privacy Needle Android app</a>
+<a class="btn" href="https://play.privacyneedle.com/" rel="noopener">More privacy games</a>
+</section>
+<footer>Privacy Needle · Know more. Protect more.<br>Examples are fictional and educational. Verify unusual requests independently.</footer>
+</main>
+<script>
+"use strict";
+// This stable ordered catalogue MUST match ScamScenarioCatalog.java.
+// The share link pins a date and mode, never the answer; no account or tracking needed.
+const scenarios=[
+["JOB OFFER","Talent Desk · WhatsApp","Congratulations! You have been selected for a remote role. Pay a ₦3,500 activation fee today before we release your interview details.",true,"Charging a fee to release interview information is a major warning sign. The pressure to pay immediately increases the risk.","Verify vacancies on the employer's official careers page. Never pay to receive an interview."],
+["BANKING","Account Support · SMS","Your account needs verification. Reply here with the six-digit code that was just sent to you so we can stop an unauthorised debit.",true,"One-time passcodes should never be shared with an unsolicited caller or message. The request is attempting to gain account access.","Contact the bank through its app or the number printed on your card, not this message."],
+["DELIVERY","Parcel Notice · Email","We couldn't deliver your package. Update your payment details at parcel-update-help.example today to prevent return to sender.",true,"An unexpected delivery fee and an unfamiliar domain are warning signs of a phishing attempt.","Open your courier's official website independently and check the tracking number."],
+["WORKPLACE","Project Coordinator · Email","Reminder: our team review is tomorrow at 10:00. The agenda is attached in the shared company workspace. No action is required if you've already accepted.",false,"This message has no payment, credential or urgency demand. It could be routine, but its sender and attachments still need checking.","Verify the sender and open documents through your company's approved workspace."],
+["INVESTMENT","Wealth Mentor · Telegram","Our private investment club guarantees 30% returns every seven days. Only five slots left. Send your funds now and screenshot your transfer.",true,"Guaranteed unusually high returns and urgent transfers are strong investment-fraud indicators.","Research the firm independently and never rely on screenshots or private chat promises."],
+["EDUCATION","Faculty Office · Portal","Your course-registration deadline is Friday. Sign in through the school's student portal by typing its known address into your browser.",false,"A deadline notice using a known school portal, without an embedded unknown sign-in link, may be legitimate. Confirm against official announcements.","Use the address you already know or the school's official app rather than a forwarded link."],
+["SOCIAL","New Contact · Instagram","I can't access my wallet while travelling. I know we only met yesterday, but please buy a gift card and message me the code.",true,"Unexpected financial requests from a new contact, especially gift-card codes, are classic social-engineering warning signs.","Never send gift-card codes to online contacts. Verify identities through independent channels."],
+["ACCOUNT SAFETY","Security Notifications · App","Your account settings show a new device. Review recent sessions by opening the official app from your home screen and checking Settings > Security.",false,"The instruction points to the official app rather than asking for credentials through a link. Still independently confirm the alert.","Check the account's security page yourself and remove devices you don't recognise."],
+["BUSINESS GRANT","SME Growth Team · SMS","Your company has been approved for a ₦2 million grant you never applied for. Send your BVN and NIN to claim it within one hour.",true,"An unsolicited grant approval and request for sensitive identity data are major warning signs.","Check programme eligibility and applications on the grant provider's verified website."],
+["TECH SUPPORT","IT Helpdesk · WhatsApp","Your laptop is infected. Install our remote-control app now and send the access code so our technician can remove the virus.",true,"Unsolicited remote-access requests can expose files, credentials and bank sessions.","Contact your employer's recognised IT team or a trusted service provider directly."],
+["NEWSLETTER","Privacy Digest · Email","Here's your weekly privacy reading list. If you don't want updates, you can change your preferences from your original subscription account.",false,"There is no immediate request for money or passwords. As with any email, verify sender details and avoid unexpected attachments.","Manage subscriptions through the publisher's official website."],
+["PAYMENTS","Marketplace Buyer · Chat","I just sent the payment, see my screenshot. Hand over the phone now. My transfer will appear in your account after a system delay.",true,"A transfer screenshot is not proof of cleared funds. Pressure to release goods before confirmation can facilitate fraud.","Check your bank's actual available balance and transaction history before releasing goods."],
+["TAX NOTICE","Revenue Desk · SMS","You have a tax refund waiting. Submit your card PIN and full bank login at refund-access.example within 20 minutes.",true,"Tax bodies do not need your card PIN or online-banking password to send a refund.","Verify any tax correspondence directly through the relevant government's official portal."],
+["EVENT","Event Organiser · Email","Your ticket confirmation is available in the event platform account you used to book. Sign in through the app you installed.",false,"The message directs you to the booking service you already use, with no unexpected payment or credential link.","Open the service independently and compare your booking details."],
+["ACCOUNT TAKEOVER","Friend · Messenger","Please send ₦50,000 immediately. Don't call; my phone is broken. I'm sending this from a new account and need it in ten minutes.",true,"A new account, refusal to verify identity and urgent money request can indicate impersonation.","Call your friend through a number you already know before sending anything."],
+["TRAINING","Learning Team · Email","You registered for the webinar next week. Visit the organiser's official event calendar to check the session time and joining details.",false,"This is consistent with routine registration information, but not proof of authenticity by itself.","Use the official calendar or registration confirmation you originally received."]
+];
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+function validDay(s){
+ if(!/^20\d{6}$/.test(s||""))return false;
+ const y=+s.slice(0,4),m=+s.slice(4,6),d=+s.slice(6,8),v=new Date(Date.UTC(y,m-1,d));
+ return v.getUTCFullYear()===y&&v.getUTCMonth()===m-1&&v.getUTCDate()===d;
+}
+const now=new Date(),utcDay=now.toISOString().slice(0,10).replace(/-/g,"");
+const day=validDay(params.get("day"))?params.get("day"):utcDay;
+const bonus=params.get("mode")==="bonus";
+const index=(Number(day)%scenarios.length+(bonus?1:0))%scenarios.length;
+const [category,sender,message,isScam,explanation,tip]=scenarios[index];
+const theirScore=/^\d{1,3}$/.test(params.get("score")||"")&&+params.get("score")<=160?+params.get("score"):-1;
+$("category").textContent=category;$("sender").textContent=sender;$("message").textContent=message;
+if(theirScore>=0)$("friendPrompt").textContent="A friend shared "+theirScore+" points. Can you beat that score?";
+let started=false,done=false,deadline=0,score=0,ticker=null,correct=false;
+function remaining(){return Math.min(30,Math.max(0,Math.ceil((deadline-performance.now())/1000)));}
+function tick(){if(!started||done)return;const s=remaining();$("timer").textContent="00:"+String(s).padStart(2,"0");
+ $("bar").style.width=(s/30*100)+"%";$("timerTrack").setAttribute("aria-valuenow",s);if(s===0)finish(false,true);}
+function start(){if(started)return;started=true;deadline=performance.now()+30000;$("intro").hidden=true;$("answers").hidden=false;tick();ticker=setInterval(tick,110);}
+function answer(selection){if(!started||done)return;if(remaining()===0){finish(false,true);return;}finish(selection===isScam,false);}
+function finish(wasCorrect,timedOut){if(done)return;done=true;clearInterval(ticker);correct=wasCorrect&&!timedOut;
+ score=correct?100+2*remaining():0;
+ $("answers").hidden=true;$("results").hidden=false;$("bar").style.width="0%";$("timer").textContent="DONE";
+ $("resultHeading").textContent=timedOut?"Time's up. Learn the clues.":correct?"Excellent instincts.":"A useful lesson learned.";
+ $("resultScore").textContent=score+" POINTS";
+ $("compare").textContent=theirScore<0?"Share the same challenge with a friend.":
+ score>theirScore?"You beat your friend's shared score of "+theirScore+"!":
+ score===theirScore?"It's a tie with your friend's shared score of "+theirScore+"!":
+ "Your friend is ahead with "+theirScore+" points.";
+ $("verdict").textContent=isScam?"This message is suspicious":"Likely legitimate, but verify";
+ $("explanation").textContent=explanation;$("tip").textContent="YOUR SAFETY TAKEAWAY: "+tip;
+}
+function link(){const u=new URL("/challenge/",location.origin);u.searchParams.set("day",day);u.searchParams.set("score",score);
+ if(bonus)u.searchParams.set("mode","bonus");return u.toString();}
+async function share(){const s="I scored "+score+" in Privacy Needle's 30-second Scam Challenge. Can you beat me? Play the EXACT SAME scenario: "+link();
+ if(navigator.share){try{await navigator.share({title:"Scam of the Day | Privacy Needle",text:s,url:link()});return;}catch(e){if(e.name==="AbortError")return;}}
+ try{await navigator.clipboard.writeText(s);$("share").textContent="Challenge link copied!";}catch(e){window.prompt("Copy this challenge link:",link());}}
+$("start").addEventListener("click",start);$("scam").addEventListener("click",()=>answer(true));
+$("legit").addEventListener("click",()=>answer(false));$("share").addEventListener("click",share);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick()});
+</script>
+</body></html>

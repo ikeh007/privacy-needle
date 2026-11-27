@@ -37,6 +37,7 @@ import com.jaims.privacyneedle.ads.AdMobManager;
 import com.jaims.privacyneedle.ads.AdPlacementPolicy;
 import com.jaims.privacyneedle.videos.VideosActivity;
 import com.jaims.privacyneedle.products.ProductsActivity;
+import com.jaims.privacyneedle.scam.ScamChallengeActivity;
 import android.net.Uri;
 import com.jaims.privacyneedle.models.Post;
 import com.jaims.privacyneedle.network.RetrofitClient;
@@ -99,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.bottom_navigation);
         findViewById(R.id.openProductsButton)
                 .setOnClickListener(v -> startActivity(new Intent(this, ProductsActivity.class)));
+        findViewById(R.id.openScamChallenge)
+                .setOnClickListener(v -> startActivity(new Intent(this, ScamChallengeActivity.class)));
 
         // A non-functional Videos button can be treated as deceptive navigation.
         // Enable it only after the verified official YouTube channel ID is configured.
@@ -228,6 +231,9 @@ public class MainActivity extends AppCompatActivity {
 
             } else if (id == R.id.nav_products) {
                 startActivity(new Intent(this, ProductsActivity.class));
+
+            } else if (id == R.id.nav_scam_challenge) {
+                startActivity(new Intent(this, ScamChallengeActivity.class));
 
             } else if (id == R.id.nav_privacy_policy) {
                 startActivity(new Intent(Intent.ACTION_VIEW,

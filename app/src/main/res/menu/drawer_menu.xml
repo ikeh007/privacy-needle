@@ -12,6 +12,11 @@
     </item>
 
     <item
+        android:id="@+id/nav_scam_challenge"
+        android:title="Scam of the Day"
+        android:icon="@drawable/security_24px" />
+
+    <item
         android:id="@+id/nav_products"
         android:title="Explore all products"
         android:icon="@drawable/diamond_24px" />
