@@ -6,9 +6,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.view.ViewGroup;
 import com.google.android.gms.ads.AdView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -31,6 +32,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ConcatAdapter;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
-    private View emptyState;
+    private StaticRowAdapter emptyStateAdapter;
     private PostsAdapter postsAdapter;
     private AdMobManager adsManager;
     private View topBannerWrapper;
@@ -97,17 +99,25 @@ public class MainActivity extends AppCompatActivity {
         // --- Views ---
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progress);
-        emptyState = findViewById(R.id.emptyState);
-        topBannerWrapper = findViewById(R.id.topBannerWrapper);
-        topBannerContainer = findViewById(R.id.topBannerContainer);
-        findViewById(R.id.retryButton).setOnClickListener(v -> loadNextPage());
-        tabLayout = findViewById(R.id.tabLayout);
+
+        // Inflate once and keep the header in the SAME RecyclerView as the articles.
+        // The hero, top ad, game/product shortcuts, topics and posts now form one
+        // continuous scroll, while the toolbar and bottom navigation stay fixed.
+        View header = LayoutInflater.from(this)
+                .inflate(R.layout.view_main_feed_header, recyclerView, false);
+        View emptyView = LayoutInflater.from(this)
+                .inflate(R.layout.view_main_empty_state, recyclerView, false);
+        emptyStateAdapter = new StaticRowAdapter(emptyView, false);
+        emptyView.findViewById(R.id.retryButton).setOnClickListener(v -> loadNextPage());
+        topBannerWrapper = header.findViewById(R.id.topBannerWrapper);
+        topBannerContainer = header.findViewById(R.id.topBannerContainer);
+        tabLayout = header.findViewById(R.id.tabLayout);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
         bottomNavigation = findViewById(R.id.bottom_navigation);
-        findViewById(R.id.openProductsButton)
+        header.findViewById(R.id.openProductsButton)
                 .setOnClickListener(v -> startActivity(new Intent(this, ProductsActivity.class)));
-        findViewById(R.id.openScamChallenge)
+        header.findViewById(R.id.openScamChallenge)
                 .setOnClickListener(v -> startActivity(new Intent(this, ScamChallengeActivity.class)));
 
         // A non-functional Videos button can be treated as deceptive navigation.
@@ -132,14 +142,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScrolled(@NonNull RecyclerView view, int dx, int dy) {
                 super.onScrolled(view, dx, dy);
-                if (dy > 0 && !isLoading && nextPage <= totalPages
-                        && layoutManager.findLastVisibleItemPosition() >= postList.size() - 3) {
+                // Count real adapter rows (header + articles + inserted ads).
+                // Counting just articles made pagination fire too early after ads loaded.
+                RecyclerView.Adapter<?> adapter = recyclerView.getAdapter();
+                if (dy > 0 && !isLoading && nextPage <= totalPages && !postList.isEmpty()
+                        && adapter != null && layoutManager.findLastVisibleItemPosition()
+                                >= adapter.getItemCount() - 4) {
                     loadNextPage();
                 }
             }
         });
         postsAdapter = new PostsAdapter(this, postList);
-        recyclerView.setAdapter(postsAdapter);
+        recyclerView.setAdapter(new ConcatAdapter(
+                new StaticRowAdapter(header, true), postsAdapter, emptyStateAdapter));
 
         adsManager = new AdMobManager(this);
         adsManager.requestConsentAndInitialize(() -> {
@@ -405,7 +420,8 @@ public class MainActivity extends AppCompatActivity {
         // A top banner must never remain visible on search or empty/error screens.
         topBannerWrapper.setVisibility(View.GONE);
         postsAdapter.setAdvertisingEnabled(currentSearchQuery == null);
-        emptyState.setVisibility(View.GONE);
+        emptyStateAdapter.setVisible(false);
+        recyclerView.scrollToPosition(0);
         loadNextPage();
     }
 
@@ -427,7 +443,7 @@ public class MainActivity extends AppCompatActivity {
 
         activeCall = call;
         isLoading = true;
-        emptyState.setVisibility(View.GONE);
+        emptyStateAdapter.setVisible(false);
         progressBar.setVisibility(View.VISIBLE);
 
         call.enqueue(new Callback<List<Post>>() {
@@ -440,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
 
                 if (!response.isSuccessful() || response.body() == null) {
-                    emptyState.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
+                    emptyStateAdapter.setVisible(postList.isEmpty());
                     android.util.Log.e("PrivacyNeedleAPI",
                             "WordPress feed returned HTTP " + response.code());
                     Toast.makeText(MainActivity.this,
@@ -465,7 +481,7 @@ public class MainActivity extends AppCompatActivity {
                     postsAdapter.refreshRows();
                     maybeLoadFeedAds();
                 } else if (requestedPage == 1) {
-                    emptyState.setVisibility(View.VISIBLE);
+                    emptyStateAdapter.setVisible(true);
                 }
 
                 nextPage = requestedPage + 1;
@@ -481,7 +497,7 @@ public class MainActivity extends AppCompatActivity {
                 isLoading = false;
                 progressBar.setVisibility(View.GONE);
                 if (!request.isCanceled()) {
-                    emptyState.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
+                    emptyStateAdapter.setVisible(postList.isEmpty());
                     android.util.Log.e("PrivacyNeedleAPI",
                             "Failed to load WordPress articles", error);
                     Toast.makeText(MainActivity.this,
@@ -496,6 +512,44 @@ public class MainActivity extends AppCompatActivity {
         if (activeCall != null) activeCall.cancel();
         if (adsManager != null) adsManager.destroy();
         super.onDestroy();
+    }
+
+    /**
+     * One fixed view inside a ConcatAdapter. Unlike a NestedScrollView around an
+     * article RecyclerView, this retains recycling and on-demand pagination.
+     * The empty view is only inserted into the adapter when it is needed.
+     */
+    private static final class StaticRowAdapter
+            extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private final View row;
+        private boolean visible;
+
+        StaticRowAdapter(View row, boolean visible) {
+            this.row = row;
+            this.visible = visible;
+        }
+
+        void setVisible(boolean show) {
+            if (visible == show) return;
+            visible = show;
+            if (show) notifyItemInserted(0);
+            else notifyItemRemoved(0);
+        }
+
+        @NonNull
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int type) {
+            return new RecyclerView.ViewHolder(row) {};
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int pos) {
+            // This row is pre-initialized, with its click handlers bound once.
+        }
+
+        @Override public int getItemCount() {
+            return visible ? 1 : 0;
+        }
     }
 
     private void setupDrawerCategories() {
