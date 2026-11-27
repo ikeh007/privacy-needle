@@ -30,7 +30,7 @@
                 android:layout_width="160dp"
                 android:layout_height="44dp"
                 android:layout_gravity="center"
-                android:src="@drawable/privacyneedl"
+                android:src="@drawable/privacy_needle"
                 android:contentDescription="@string/app_name"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"/>

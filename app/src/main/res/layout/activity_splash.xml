@@ -57,7 +57,7 @@
                 android:layout_gravity="center"
                 android:contentDescription="@string/app_name"
                 android:scaleType="fitCenter"
-                android:src="@drawable/pneedle_app"/>
+                android:src="@drawable/pneedle_bg"/>
         </FrameLayout>
 
         <TextView
