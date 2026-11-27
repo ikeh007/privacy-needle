@@ -117,6 +117,7 @@ public final class ScamChallengeActivity extends AppCompatActivity {
     }
 
     private void render() {
+        findViewById(R.id.scamMessageCard).setVisibility(started ? View.VISIBLE : View.GONE);
         introPanel.setVisibility(!started ? View.VISIBLE : View.GONE);
         answerPanel.setVisibility(started && !resolved ? View.VISIBLE : View.GONE);
         resultPanel.setVisibility(resolved ? View.VISIBLE : View.GONE);
