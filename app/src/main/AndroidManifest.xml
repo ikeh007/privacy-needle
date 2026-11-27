@@ -45,6 +45,7 @@
                 <data android:scheme="privacyneedle" android:host="challenge" />
             </intent-filter>
         </activity>
+        <activity android:name=".products.ProductsActivity" android:exported="false" />
         <activity android:name=".videos.VideosActivity" android:exported="false" />
         <activity android:name=".videos.VideoPlayerActivity" android:exported="false" />
 
