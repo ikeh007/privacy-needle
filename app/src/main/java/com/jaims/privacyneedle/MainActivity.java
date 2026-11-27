@@ -99,6 +99,11 @@ public class MainActivity extends AppCompatActivity {
         // --- Views ---
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progress);
+        // RecyclerView creates LayoutParams for inflated child views through its
+        // LayoutManager. Install it BEFORE inflating our header/empty-state rows;
+        // otherwise the app crashes during MainActivity.onCreate().
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
 
         // Inflate once and keep the header in the SAME RecyclerView as the articles.
         // The hero, top ad, game/product shortcuts, topics and posts now form one
@@ -136,8 +141,6 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayUseLogoEnabled(true);
         }
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView view, int dx, int dy) {
