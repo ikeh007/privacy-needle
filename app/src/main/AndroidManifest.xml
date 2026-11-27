@@ -23,6 +23,7 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${ADMOB_APP_ID}" />
 
+        <activity android:name=".products.ProductsActivity" android:exported="false" />
         <activity android:name=".videos.VideosActivity" android:exported="false" />
         <activity android:name=".videos.VideoPlayerActivity" android:exported="false" />
 
