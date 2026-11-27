@@ -162,6 +162,11 @@ public final class AdMobManager {
         return topBanner;
     }
 
+    /** Two distinct native ads in a sufficiently populated, explanatory product guide. */
+    public void loadProductNativeAds(int productCount, Runnable onUpdated) {
+        loadNativeAds(AdPlacementPolicy.desiredProductNativeAds(productCount), onUpdated);
+    }
+
     /** One additional native placement on a completed game-result page. */
     public void loadGameResultNativeAd(Runnable onUpdated) {
         loadNativeAds(1, onUpdated);

@@ -23,6 +23,13 @@ public final class AdPlacementPolicy {
         return mayShowFeedBanner(articleCount, isSearch);
     }
 
+    public static int desiredProductNativeAds(int productCount) {
+        // Product discovery also contains explanatory editorial tips. Never
+        // display an ad-only or link-only page, and cap ads at two per session.
+        if (productCount < 7) return 0;
+        return Math.min(2, productCount / 3);
+    }
+
     public static boolean mayShowGameResultsAds(boolean challengeCompleted) {
         return challengeCompleted;
     }
